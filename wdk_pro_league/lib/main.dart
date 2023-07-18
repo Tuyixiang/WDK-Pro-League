@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:styled_widget/styled_widget.dart';
+import 'leaderBoard.dart';
 
 void main() {
   runApp(const MyApp());
@@ -55,30 +57,31 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
+      body: Center(child: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth * 1.5 < constraints.maxHeight) {
+            return _buildForVerticalScreen(context);
+          } else {
+            return _buildForHorizontalScreen(context);
+          }
+        },
+      )),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  /// Build UI for mobile phones
+  Widget _buildForVerticalScreen(BuildContext context) {
+    return const LeaderBoardPage();
+  }
+
+  /// Build UI for iPad/PC
+  Widget _buildForHorizontalScreen(BuildContext context) {
+    // todo
+    return _buildForVerticalScreen(context);
   }
 }
