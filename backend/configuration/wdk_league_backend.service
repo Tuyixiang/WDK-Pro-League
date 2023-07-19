@@ -1,0 +1,15 @@
+# /etc/systemd/system/wdk_league_backend.service
+
+[Unit]
+Description=uWSGI instance to serve wdk-league backend
+After=network.target
+
+[Service]
+User=wdk_league
+Group=www-data
+WorkingDirectory=/home/wdk_league/WDK-Pro-League/backend
+Environment="PATH=/home/wdk_league/WDK-Pro-League/backend/venv/bin"
+ExecStart=/home/wdk_league/WDK-Pro-League/backend/venv/bin/uwsgi --ini configuration/wdk_league_backend.ini
+
+[Install]
+WantedBy=multi-user.target

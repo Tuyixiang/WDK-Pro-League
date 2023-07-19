@@ -1,0 +1,16 @@
+# /etc/nginx/sites-available/wdk_league_backend
+
+server {
+    listen 23333 ssl;
+    server_name wdk-league.pro;
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass unix:/home/wdk_league/WDK-Pro-League/backend/wdk_league_backend.sock;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/wdk-league.pro/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wdk-league.pro/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+}
