@@ -1,93 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
-import 'package:json_annotation/json_annotation.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:wdk_pro_league/elements/rank.dart';
+import 'package:wdk_pro_league/io.dart';
 // import 'elements/rank.dart';
-
-part 'leaderBoard.g.dart';
-
-/// Public info for players
-@JsonSerializable()
-class LeaderBoardPlayerInfo {
-  /// Player name (unique)
-  final String name;
-
-  /// Player total pt
-  final int pt;
-
-  /// Player R points
-  final double r;
-
-  /// Player rank (1-10)
-  final int rank;
-
-  /// Number of games played
-  final int gameCount;
-
-  /// Number of games won
-  final int winCount;
-
-  LeaderBoardPlayerInfo(
-      this.name, this.pt, this.r, this.rank, this.gameCount, this.winCount);
-
-  factory LeaderBoardPlayerInfo.fromJson(Map<String, dynamic> json) =>
-      _$LeaderBoardPlayerInfoFromJson(json);
-
-  Map<String, dynamic> toJson() => _$LeaderBoardPlayerInfoToJson(this);
-}
-
-/// Data for the leader board
-@JsonSerializable()
-class LeaderBoardData {
-  /// Player data
-  final List<LeaderBoardPlayerInfo> playerInfoList;
-
-  /// Time of last update
-  final DateTime updateTime;
-
-  LeaderBoardData(this.playerInfoList, this.updateTime);
-
-  factory LeaderBoardData.fromJson(Map<String, dynamic> json) =>
-      _$LeaderBoardDataFromJson(json);
-
-  Map<String, dynamic> toJson() => _$LeaderBoardDataToJson(this);
-}
-
-final sampleData = LeaderBoardData([
-  LeaderBoardPlayerInfo("Alice", 1000, 1500, 4, 97, 51),
-  LeaderBoardPlayerInfo("Bob", 800, 1500, 3, 100, 40),
-  LeaderBoardPlayerInfo("Charles", 1200, 1500, 5, 100, 60),
-  LeaderBoardPlayerInfo("David", 10000, 1300, 4, 100, 49),
-  LeaderBoardPlayerInfo("Alice", 1000, 1500, 4, 100, 50),
-  LeaderBoardPlayerInfo("Bob", 800, 1500, 3, 100, 40),
-  LeaderBoardPlayerInfo("Charles", 1200, 1500, 5, 100, 60),
-  LeaderBoardPlayerInfo("David", 10000, 1300, 4, 100, 49),
-  LeaderBoardPlayerInfo("Alice", 1000, 1500, 4, 100, 50),
-  LeaderBoardPlayerInfo("Bob", 800, 1500, 3, 100, 40),
-  LeaderBoardPlayerInfo("Charles", 1200, 1500, 5, 100, 60),
-  LeaderBoardPlayerInfo("David", 10000, 1300, 4, 100, 49),
-], DateTime.now());
 
 /// Leader Board Page
 ///
 /// All data should be ready
 class LeaderBoardPage extends StatelessWidget {
-  const LeaderBoardPage({super.key, this.data});
+  const LeaderBoardPage({super.key, required this.data});
 
-  final LeaderBoardData? data;
+  final List<PlayerPreview> data;
 
   @override
   Widget build(BuildContext context) {
-    // highest ranking players first
-    var displayData = data ?? sampleData;
-    displayData.playerInfoList.sort(
-      (a, b) => b.pt.compareTo(a.pt),
-    );
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: displayData.playerInfoList
+      children: data
           .mapIndexed(
             (index, info) => PlayerCard(index: index, info: info),
           )
@@ -100,7 +31,7 @@ class LeaderBoardPage extends StatelessWidget {
 class PlayerCard extends StatefulWidget {
   /// Index in list (first place is 0)
   final int index;
-  final LeaderBoardPlayerInfo info;
+  final PlayerPreview info;
 
   const PlayerCard({super.key, required this.index, required this.info});
 
@@ -165,28 +96,27 @@ class _PlayerCardState extends State<PlayerCard> {
 
     final Widget name = Row(children: [
       Text(
-        widget.info.name,
+        widget.info.playerName,
         style: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 16,
         ),
       ).padding(right: 8),
-      buildRankText(context, widget.info.rank),
+      buildRankText(context, widget.info.currentDan),
     ]).padding(bottom: 5);
 
-    final String winRateText;
+    final String orderText;
     if (widget.info.gameCount == 0) {
-      winRateText = '暂无数据';
+      orderText = '暂无数据';
     } else {
-      winRateText =
-          '${(widget.info.winCount / widget.info.gameCount * 100).round()}%';
+      orderText = widget.info.orderCount.join("/");
     }
     final Widget description = Text(
-      '${widget.info.pt}pt'
+      'pt: ${widget.info.currentPt}/${widget.info.thresholdPt}'
       '  '
-      '胜率: $winRateText'
+      '顺位场次: $orderText'
       '  '
-      'R: ${widget.info.r.round()}',
+      'R: ${widget.info.rValue.round()}',
       style: const TextStyle(
         color: Colors.black26,
         fontWeight: FontWeight.normal,

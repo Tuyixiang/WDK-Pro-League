@@ -1,5 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:wdk_pro_league/io.dart';
 import 'leaderBoard.dart';
 
 void main() {
@@ -44,9 +47,19 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  List<PlayerPreview>? leaderBoardData;
+
   void _incrementCounter() {
     setState(() {
       _counter++;
+    });
+  }
+
+  _MyHomePageState() {
+    IO.getLeaderBoard().then((data) {
+      setState(() {
+        leaderBoardData = data;
+      });
     });
   }
 
@@ -76,7 +89,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   /// Build UI for mobile phones
   Widget _buildForVerticalScreen(BuildContext context) {
-    return const LeaderBoardPage();
+    if (leaderBoardData == null) {
+      return const Text("Loading...");
+    }
+    return LeaderBoardPage(data: leaderBoardData!);
   }
 
   /// Build UI for iPad/PC
