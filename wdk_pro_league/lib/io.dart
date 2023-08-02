@@ -178,7 +178,8 @@ Future<Map<String, dynamic>> sampleData =
   return obj;
 });
 
-const apiBaseUrl = "http://127.0.0.1:5000";
+// const apiBaseUrl = "http://127.0.0.1:5000";
+const apiBaseUrl = "";
 
 class IO {
   /// 获取排行榜
