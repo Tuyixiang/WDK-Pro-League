@@ -172,19 +172,20 @@ class GamePreview {
 
 /// Placeholder 数据
 Future<Map<String, dynamic>> sampleData =
-    rootBundle.loadString("lib/sampleData.json").then((string) {
+    rootBundle.loadString("assets/sampleData.json").then((string) {
   var obj = jsonDecode(string);
   print(obj);
   return obj;
 });
 
+const apiBaseUrl = "http://127.0.0.1:5000";
+
 class IO {
   /// 获取排行榜
   static Future<List<PlayerPreview>> getLeaderBoard() async {
     try {
-      final response = await dio.get("/api/access/leader_board");
-      final data = jsonDecode(response.data);
-      return data.map((obj) => PlayerPreview(obj)).toList();
+      final response = await dio.get("$apiBaseUrl/api/access/leader_board");
+      return List<PlayerPreview>.from(response.data.map((obj) => PlayerPreview(obj)));
     } on DioException catch (e) {
       print(e.response);
       final data = (await sampleData)["leaderBoard"];
@@ -195,9 +196,8 @@ class IO {
   /// 获取全部游戏记录
   static Future<List<GamePreview>> getGameHistory() async {
     try {
-      final response = await dio.get("/api/access/game_history");
-      final List<Map<String, dynamic>> data = jsonDecode(response.data);
-      return data.map((obj) => GamePreview(obj)).toList();
+      final response = await dio.get("$apiBaseUrl/api/access/game_history");
+      return List<GamePreview>.from(response.data.map((obj) => GamePreview(obj)));
     } on DioException catch (e) {
       print(e.response);
       final List<Map<String, dynamic>> data = (await sampleData)["gameHistory"];
@@ -208,10 +208,10 @@ class IO {
   /// 查询玩家信息
   static Future<PlayerData> getPlayerData(String playerId) async {
     try {
-      final response = await dio.get("/api/query/player", queryParameters: {
+      final response = await dio.get("$apiBaseUrl/api/query/player", queryParameters: {
         "player_id": playerId,
       });
-      return PlayerData(jsonDecode(response.data));
+      return PlayerData(response.data);
     } on DioException catch (e) {
       print(e.message);
       return PlayerData((await sampleData)["player"]);
@@ -221,10 +221,10 @@ class IO {
   /// 查询玩家信息
   static Future<GameData> getGameData(String gameId) async {
     try {
-      final response = await dio.get("/api/query/game", queryParameters: {
+      final response = await dio.get("$apiBaseUrl/api/query/game", queryParameters: {
         "game_id": gameId,
       });
-      return GameData(jsonDecode(response.data));
+      return GameData(response.data);
     } on DioException catch (e) {
       print(e.message);
       return GameData((await sampleData)["game"]);

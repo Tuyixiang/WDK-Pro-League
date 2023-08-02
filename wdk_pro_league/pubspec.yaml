@@ -66,7 +66,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - lib/sampleData.json
+    - assets/sampleData.json
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
@@ -81,7 +81,17 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
+  fonts:
+    - family: SourceHanSans
+      fonts:
+        - asset: assets/fonts/SourceHanSansCN-Regular.otf
+        #   weight: 400
+        # - asset: assets/fonts/SourceHanSansCN-Bold.otf
+        #   weight: 700
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular-14.ttf
+        
   #   - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf
