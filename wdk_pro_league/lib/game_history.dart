@@ -17,6 +17,13 @@ class _GameHistoryPageState extends State<GameHistoryPage> {
   List<GamePreview> data = [];
   bool initialized = false;
 
+  _GameHistoryPageState() {
+    if (IO.cachedGameHistory != null) {
+      data = IO.cachedGameHistory!;
+      initialized = true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!initialized) {
@@ -36,16 +43,11 @@ class _GameHistoryPageState extends State<GameHistoryPage> {
                 style: TextStyle(fontWeight: FontWeight.bold))
             .center(),
       ),
-      body: SizedBox.expand(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: data.reversed
-              .map(
-                (data) => GamePreviewCard(data: data),
-              )
-              .toList(),
-        ).scrollable(),
+      // 为每个游戏记录生成卡片（倒序）
+      body: ListView.builder(
+        itemCount: data.length,
+        itemBuilder: (context, index) =>
+            GamePreviewCard(data: data[data.length - index - 1]),
       ),
     );
   }
@@ -175,7 +177,7 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
           ),
         ),
       ],
-    ).padding(horizontal: 16, top: 8);
-    return Column(children: [header, card]).constrained(maxWidth: maxWidth);
+    ).constrained(maxWidth: maxWidth).padding(horizontal: 16, top: 8);
+    return Column(children: [header, card]);
   }
 }

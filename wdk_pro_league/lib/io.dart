@@ -204,10 +204,10 @@ String get apiBaseUrl {
 }
 
 class IO {
-  static List<PlayerPreview>? _cachedLeaderBoard;
-  static List<GamePreview>? _cachedGameHistory;
-  static final Map<String, PlayerData> _cachedPlayerData = {};
-  static final Map<String, GameData> _cachedGameData = {};
+  static List<PlayerPreview>? cachedLeaderBoard;
+  static List<GamePreview>? cachedGameHistory;
+  static final Map<String, PlayerData> cachedPlayerData = {};
+  static final Map<String, GameData> cachedGameData = {};
 
   /// 从后端抓取排行榜
   static Future<List<PlayerPreview>> _fetchLeaderBoard() async {
@@ -224,7 +224,7 @@ class IO {
 
   /// 获取排行榜
   static Future<List<PlayerPreview>> getLeaderBoard() async {
-    return _cachedLeaderBoard ??= await _fetchLeaderBoard();
+    return cachedLeaderBoard ??= await _fetchLeaderBoard();
   }
 
   /// 从后端抓取全部游戏记录
@@ -242,7 +242,7 @@ class IO {
 
   /// 获取全部游戏记录
   static Future<List<GamePreview>> getGameHistory() async {
-    return _cachedGameHistory ??= await _fetchGameHistory();
+    return cachedGameHistory ??= await _fetchGameHistory();
   }
 
   /// 从后端抓取玩家信息
@@ -261,7 +261,7 @@ class IO {
 
   /// 查询玩家信息
   static Future<PlayerData> getPlayerData(String playerId) async {
-    return _cachedPlayerData[playerId] ??= await _fetchPlayerData(playerId);
+    return cachedPlayerData[playerId] ??= await _fetchPlayerData(playerId);
   }
 
   /// 从后端抓取游戏信息
@@ -280,6 +280,6 @@ class IO {
 
   /// 查询游戏信息
   static Future<GameData> getGameData(String gameId) async {
-    return _cachedGameData[gameId] ??= await _fetchGameData(gameId);
+    return cachedGameData[gameId] ??= await _fetchGameData(gameId);
   }
 }

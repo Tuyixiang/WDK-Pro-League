@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:wdk_pro_league/elements/card.dart';
@@ -21,6 +20,13 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
   List<PlayerPreview> data = [];
   bool initialized = false;
 
+  _LeaderBoardPageState() {
+    if (IO.cachedLeaderBoard != null) {
+      data = IO.cachedLeaderBoard!;
+      initialized = true;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!initialized) {
@@ -34,39 +40,32 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
       });
     }
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("WDK Pro League 排行榜",
-                style: TextStyle(fontWeight: FontWeight.bold))
-            .center(),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).push(_loadHistoryPage());
-            },
-            icon: const Icon(Icons.history),
-          )
-        ],
-      ),
-      body: SizedBox.expand(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: data
-              .mapIndexed(
-                (index, info) => PlayerCard(index: index, info: info),
-              )
-              .toList(),
-        ).scrollable(),
-      ),
-    );
+        appBar: AppBar(
+          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          title: const Text("WDK Pro League 排行榜",
+                  style: TextStyle(fontWeight: FontWeight.bold))
+              .center(),
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).push(_loadHistoryPage());
+              },
+              icon: const Icon(Icons.history),
+            )
+          ],
+        ),
+        body: ListView.builder(
+          itemCount: data.length,
+          itemBuilder: (context, index) =>
+              PlayerCard(index: index, info: data[index]),
+        ));
   }
 
   /// 加载历史页面
   Route _loadHistoryPage() {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
-          const GameHistoryPage(),
+          GameHistoryPage(),
       // 从下至上弹出的动画
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(0.0, 1.0);
