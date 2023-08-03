@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 style: const TextStyle(fontWeight: FontWeight.bold))
             .center(),
       ),
-      body: Center(child: LayoutBuilder(
+      body: SizedBox.expand(child: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth * 1.5 < constraints.maxHeight) {
             return _buildForVerticalScreen(context);
