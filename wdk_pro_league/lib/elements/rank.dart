@@ -14,7 +14,7 @@ const List<String> danNames = [
   "十",
 ];
 
-Widget buildRankText(BuildContext context, int dan) {
+Widget buildDan(BuildContext context, int dan) {
   final theme = Theme.of(context);
   return Text(
     '${danNames[dan]}段',

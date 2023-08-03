@@ -62,9 +62,11 @@ class PlayerData {
         highestDanPt = data["highest_dan_pt"],
         thresholdPt = data["threshold_pt"],
         rValue = data["r_value"],
-        gameHistory = data["game_history"].map((v) => GamePreview(v)).toList(),
+        gameHistory = List<GamePreview>.from(
+          data["game_history"].map((v) => GamePreview(v)),
+        ),
         gameCount = data["game_count"],
-        orderCount = data["order_count"];
+        orderCount = data["order_count"].cast<int>();
 }
 
 /// 部分的玩家数据
@@ -101,7 +103,7 @@ class PlayerPreview {
         thresholdPt = data["threshold_pt"],
         rValue = data["r_value"].toDouble(),
         gameCount = data["game_count"],
-        orderCount = List<int>.from(data["order_count"]);
+        orderCount = data["order_count"].cast<int>();
 }
 
 /// 完整的游戏数据
@@ -134,15 +136,17 @@ class GameData {
   final List<double> rDelta;
 
   GameData(Map<String, dynamic> data)
-      : players = data["players"].map((v) => PlayerPreview(v)),
-        playerPoints = data["player_points"],
+      : players = List<PlayerPreview>.from(
+          data["players"].map((v) => PlayerPreview(v)),
+        ),
+        playerPoints = data["player_points"].cast<int>(),
         rounds = data["rounds"],
         gameDate = callIfNotNull(DateTime.parse, data["game_date"]),
         externalId = data["external_id"],
         gameId = data["game_id"],
         uploadTime = DateTime.parse(data["upload_time"]),
-        ptDelta = data["pt_delta"],
-        rDelta = data["r_delta"];
+        ptDelta = data["pt_delta"].cast<int>(),
+        rDelta = data["r_delta"].cast<double>();
 }
 
 /// 部分的游戏数据
@@ -162,12 +166,18 @@ class GamePreview {
   /// 玩家获得的分数
   final List<int> ptDelta;
 
+  /// 玩家获得的 R
+  final List<double> rDelta;
+
   GamePreview(Map<String, dynamic> data)
-      : players = data["players"].map((v) => PlayerPreview(v)),
-        playerPoints = data["player_points"],
+      : players = List<PlayerPreview>.from(
+          data["players"].map((v) => PlayerPreview(v)),
+        ),
+        playerPoints = data["player_points"].cast<int>(),
         gameDate = callIfNotNull(DateTime.parse, data["game_date"]),
         gameId = data["game_id"],
-        ptDelta = data["pt_delta"];
+        ptDelta = data["pt_delta"].cast<int>(),
+        rDelta = data["r_delta"].cast<double>();
 }
 
 /// Placeholder 数据
@@ -207,7 +217,9 @@ class IO {
           response.data.map((obj) => GamePreview(obj)));
     } catch (e) {
       print(e);
-      final List<Map<String, dynamic>> data = (await sampleData)["gameHistory"];
+      print("fuck");
+      final data = (await sampleData)["gameHistory"];
+      print(data[0]["players"]);
       return List<GamePreview>.from(data.map((obj) => GamePreview(obj)));
     }
   }

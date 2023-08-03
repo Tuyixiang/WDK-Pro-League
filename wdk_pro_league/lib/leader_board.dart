@@ -2,20 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:wdk_pro_league/elements/appBar.dart';
-import 'package:wdk_pro_league/elements/rank.dart';
-import 'package:wdk_pro_league/io.dart';
+import 'package:wdk_pro_league/elements/card.dart';
+import 'package:wdk_pro_league/game_history.dart';
 
-import 'elements/globalState.dart';
-// import 'elements/rank.dart';
+import 'io.dart';
+import 'elements/rank.dart';
+import 'elements/loading.dart';
 
 /// Leader Board Page
-class LeaderBoardPage extends MyPage {
-  @override
-  String get title {
-    return "WDK Pro League 排行榜";
-  }
-
+class LeaderBoardPage extends StatefulWidget {
   const LeaderBoardPage({super.key});
 
   @override
@@ -32,21 +27,61 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
       print("Start initializing leader board");
       initialized = true;
       Provider.of<Loading>(context).on(IO.getLeaderBoard).then((data) {
+        print("Leader board data fetched");
         setState(() {
-          print("Leader board data fetched");
           this.data = data;
         });
       });
     }
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: data
-          .mapIndexed(
-            (index, info) => PlayerCard(index: index, info: info),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: const Text("WDK Pro League 排行榜",
+                style: TextStyle(fontWeight: FontWeight.bold))
+            .center(),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(_loadHistoryPage());
+            },
+            icon: const Icon(Icons.history),
           )
-          .toList(),
-    ).scrollable();
+        ],
+      ),
+      body: SizedBox.expand(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: data
+              .mapIndexed(
+                (index, info) => PlayerCard(index: index, info: info),
+              )
+              .toList(),
+        ).scrollable(),
+      ),
+    );
+  }
+
+  /// 加载历史页面
+  Route _loadHistoryPage() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          const GameHistoryPage(),
+      // 从下至上弹出的动画
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.ease;
+
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
   }
 }
 
@@ -62,9 +97,7 @@ class PlayerCard extends StatefulWidget {
   _PlayerCardState createState() => _PlayerCardState();
 }
 
-class _PlayerCardState extends State<PlayerCard> {
-  bool pressed = false;
-
+class _PlayerCardState extends CardState<PlayerCard> {
   Color colorFromIndex(i) {
     final themeColor = Theme.of(context).primaryColor;
     if (i == 0) {
@@ -79,29 +112,7 @@ class _PlayerCardState extends State<PlayerCard> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    cardItem({required Widget child}) => Styled.widget(child: child)
-        .alignment(Alignment.center)
-        .borderRadius(all: 15)
-        .ripple()
-        .backgroundColor(Colors.white, animate: true)
-        .clipRRect(all: 25) // clip ripple
-        .borderRadius(all: 25, animate: true)
-        .elevation(
-          pressed ? 0 : 20,
-          borderRadius: BorderRadius.circular(25),
-          shadowColor: const Color(0x30000000),
-        ) // shadow borderRadius
-        .constrained(height: 80)
-        .padding(horizontal: 12, vertical: 6) // margin
-        .gestures(
-          onTapChange: (tapStatus) => setState(() => pressed = tapStatus),
-          onTapDown: (details) => print('tapDown'),
-          onTap: () => print('onTap'),
-        )
-        .scale(all: pressed ? 0.97 : 1.0, animate: true)
-        .animate(const Duration(milliseconds: 150), Curves.easeOut);
-
+  Widget buildChild(BuildContext context) {
     final Widget index = Styled.widget(
       child: Text(
         (widget.index + 1).toString(),
@@ -125,7 +136,7 @@ class _PlayerCardState extends State<PlayerCard> {
           fontSize: 16,
         ),
       ).padding(right: 8),
-      buildRankText(context, widget.info.currentDan),
+      buildDan(context, widget.info.currentDan),
     ]).padding(bottom: 5);
 
     final String orderText;
@@ -147,17 +158,15 @@ class _PlayerCardState extends State<PlayerCard> {
       ),
     );
 
-    return cardItem(
-      child: <Widget>[
-        index,
-        <Widget>[
-          name,
-          description,
-        ].toColumn(
+    return Row(children: [
+      index,
+      Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
-        ),
-      ].toRow(),
-    );
+          children: [
+            name,
+            description,
+          ]),
+    ]);
   }
 }

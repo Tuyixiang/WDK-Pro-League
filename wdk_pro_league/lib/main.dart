@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:styled_widget/styled_widget.dart';
-import 'package:wdk_pro_league/elements/globalState.dart';
-import 'elements/appBar.dart';
-import 'leaderBoard.dart';
+import 'package:wdk_pro_league/elements/loading.dart';
+import 'leader_board.dart';
 
 void main() {
   runApp(
@@ -40,7 +38,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  MyPage activeWidget;
+  Widget activeWidget;
 
   _MyHomePageState() : activeWidget = const LeaderBoardPage();
 
@@ -52,28 +50,21 @@ class _MyHomePageState extends State<MyHomePage> {
       ));
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(activeWidget.title,
-                style: const TextStyle(fontWeight: FontWeight.bold))
-            .center(),
-      ),
-      body: SizedBox.expand(child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth * 1.5 < constraints.maxHeight) {
-            return _buildForVerticalScreen(context);
-          } else {
-            return _buildForHorizontalScreen(context);
-          }
-        },
-      )),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: _incrementCounter,
-      //   tooltip: 'Increment',
-      //   child: const Icon(Icons.add),
-      // ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth * 1.5 < constraints.maxHeight) {
+          return _buildForVerticalScreen(context);
+        } else {
+          return _buildForHorizontalScreen(context);
+        }
+      },
+    )
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: _incrementCounter,
+        //   tooltip: 'Increment',
+        //   child: const Icon(Icons.add),
+        // ), // This trailing comma makes auto-formatting nicer for build methods.
+        ;
   }
 
   /// Build UI for mobile phones
