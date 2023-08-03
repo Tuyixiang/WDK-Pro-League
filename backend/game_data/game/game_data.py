@@ -60,6 +60,9 @@ class GameData(Deserializable):
     r_delta: List[float] = field(init=False, repr=False)
     """玩家获得的 R，缓存变量"""
 
+    game_type: str = field(init=False, repr=False)
+    """游戏的类型（雀魂或手动录入）"""
+
     @property
     def sorted_player_points(self) -> List[Tuple[PlayerSnapshot, int]]:
         """玩家及游戏分数，按照分数倒序排列"""
@@ -77,11 +80,21 @@ class GameData(Deserializable):
         """参与玩家的游戏结果排序"""
         return [p.player_id for p, _ in self.sorted_player_points]
 
+    @property
+    def date(self) -> datetime:
+        """进行游戏的日期，或上传记录的日期"""
+        return self.game_date or self.upload_time
+
     def __post_init__(self):
         self.update()
 
     def update(self):
         """计算分数和 R"""
+        if self.external_id:
+            self.game_type = "雀魂牌局"
+        else:
+            self.game_type = "手动录入牌局"
+
         self.pt_delta = [0, 0, 0, 0]
         self.r_delta = [0, 0, 0, 0]
 

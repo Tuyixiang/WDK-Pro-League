@@ -19,8 +19,8 @@ class GamePreview(Deserializable):
     player_points: List[int]
     """每个玩家获得的点数（当盘游戏的点数，非玩家累计点数）"""
 
-    game_date: Optional[datetime]
-    """实际进行游戏的日期"""
+    date: datetime
+    """进行游戏的日期，或上传记录的日期"""
 
     game_id: str
     """Index 所用的唯一 key"""
@@ -30,3 +30,6 @@ class GamePreview(Deserializable):
 
     r_delta: List[float]
     """玩家获得的 R 分数"""
+
+    game_type: str
+    """游戏的类型（雀魂或手动录入）"""

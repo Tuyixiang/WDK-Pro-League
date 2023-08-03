@@ -204,8 +204,13 @@ String get apiBaseUrl {
 }
 
 class IO {
-  /// 获取排行榜
-  static Future<List<PlayerPreview>> getLeaderBoard() async {
+  static List<PlayerPreview>? _cachedLeaderBoard;
+  static List<GamePreview>? _cachedGameHistory;
+  static final Map<String, PlayerData> _cachedPlayerData = {};
+  static final Map<String, GameData> _cachedGameData = {};
+
+  /// 从后端抓取排行榜
+  static Future<List<PlayerPreview>> _fetchLeaderBoard() async {
     try {
       final response = await dio.get("$apiBaseUrl/api/access/leader_board");
       return List<PlayerPreview>.from(
@@ -217,23 +222,31 @@ class IO {
     }
   }
 
-  /// 获取全部游戏记录
-  static Future<List<GamePreview>> getGameHistory() async {
+  /// 获取排行榜
+  static Future<List<PlayerPreview>> getLeaderBoard() async {
+    return _cachedLeaderBoard ??= await _fetchLeaderBoard();
+  }
+
+  /// 从后端抓取全部游戏记录
+  static Future<List<GamePreview>> _fetchGameHistory() async {
     try {
       final response = await dio.get("$apiBaseUrl/api/access/game_history");
       return List<GamePreview>.from(
           response.data.map((obj) => GamePreview(obj)));
     } catch (e) {
       print(e);
-      print("fuck");
       final data = (await sampleData)["gameHistory"];
-      print(data[0]["players"]);
       return List<GamePreview>.from(data.map((obj) => GamePreview(obj)));
     }
   }
 
-  /// 查询玩家信息
-  static Future<PlayerData> getPlayerData(String playerId) async {
+  /// 获取全部游戏记录
+  static Future<List<GamePreview>> getGameHistory() async {
+    return _cachedGameHistory ??= await _fetchGameHistory();
+  }
+
+  /// 从后端抓取玩家信息
+  static Future<PlayerData> _fetchPlayerData(String playerId) async {
     try {
       final response =
           await dio.get("$apiBaseUrl/api/query/player", queryParameters: {
@@ -247,7 +260,12 @@ class IO {
   }
 
   /// 查询玩家信息
-  static Future<GameData> getGameData(String gameId) async {
+  static Future<PlayerData> getPlayerData(String playerId) async {
+    return _cachedPlayerData[playerId] ??= await _fetchPlayerData(playerId);
+  }
+
+  /// 从后端抓取游戏信息
+  static Future<GameData> _fetchGameData(String gameId) async {
     try {
       final response =
           await dio.get("$apiBaseUrl/api/query/game", queryParameters: {
@@ -258,5 +276,10 @@ class IO {
       print(e);
       return GameData((await sampleData)["game"]);
     }
+  }
+
+  /// 查询游戏信息
+  static Future<GameData> getGameData(String gameId) async {
+    return _cachedGameData[gameId] ??= await _fetchGameData(gameId);
   }
 }
