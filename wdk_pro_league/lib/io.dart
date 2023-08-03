@@ -186,9 +186,10 @@ class IO {
   static Future<List<PlayerPreview>> getLeaderBoard() async {
     try {
       final response = await dio.get("$apiBaseUrl/api/access/leader_board");
-      return List<PlayerPreview>.from(response.data.map((obj) => PlayerPreview(obj)));
-    } on DioException catch (e) {
-      print(e.response);
+      return List<PlayerPreview>.from(
+          response.data.map((obj) => PlayerPreview(obj)));
+    } catch (e) {
+      print(e);
       final data = (await sampleData)["leaderBoard"];
       return List<PlayerPreview>.from(data.map((obj) => PlayerPreview(obj)));
     }
@@ -198,9 +199,10 @@ class IO {
   static Future<List<GamePreview>> getGameHistory() async {
     try {
       final response = await dio.get("$apiBaseUrl/api/access/game_history");
-      return List<GamePreview>.from(response.data.map((obj) => GamePreview(obj)));
-    } on DioException catch (e) {
-      print(e.response);
+      return List<GamePreview>.from(
+          response.data.map((obj) => GamePreview(obj)));
+    } catch (e) {
+      print(e);
       final List<Map<String, dynamic>> data = (await sampleData)["gameHistory"];
       return List<GamePreview>.from(data.map((obj) => GamePreview(obj)));
     }
@@ -209,12 +211,13 @@ class IO {
   /// 查询玩家信息
   static Future<PlayerData> getPlayerData(String playerId) async {
     try {
-      final response = await dio.get("$apiBaseUrl/api/query/player", queryParameters: {
+      final response =
+          await dio.get("$apiBaseUrl/api/query/player", queryParameters: {
         "player_id": playerId,
       });
       return PlayerData(response.data);
-    } on DioException catch (e) {
-      print(e.message);
+    } catch (e) {
+      print(e);
       return PlayerData((await sampleData)["player"]);
     }
   }
@@ -222,12 +225,13 @@ class IO {
   /// 查询玩家信息
   static Future<GameData> getGameData(String gameId) async {
     try {
-      final response = await dio.get("$apiBaseUrl/api/query/game", queryParameters: {
+      final response =
+          await dio.get("$apiBaseUrl/api/query/game", queryParameters: {
         "game_id": gameId,
       });
       return GameData(response.data);
-    } on DioException catch (e) {
-      print(e.message);
+    } catch (e) {
+      print(e);
       return GameData((await sampleData)["game"]);
     }
   }

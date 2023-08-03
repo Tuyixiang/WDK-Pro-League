@@ -85,9 +85,6 @@ flutter:
     - family: SourceHanSans
       fonts:
         - asset: assets/fonts/SourceHanSansCN-Regular.otf
-        #   weight: 400
-        # - asset: assets/fonts/SourceHanSansCN-Bold.otf
-        #   weight: 700
     - family: Roboto
       fonts:
         - asset: assets/fonts/Roboto-Regular-14.ttf

@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:wdk_pro_league/io.dart';
+import 'elements/appBar.dart';
 import 'leaderBoard.dart';
 
 void main() {
@@ -22,54 +23,29 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: "SourceHanSans",
       ),
-      home: const MyHomePage(title: 'WPL Home'),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  const MyHomePage({super.key});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  MyPage activeWidget;
 
-  List<PlayerPreview>? leaderBoardData;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  _MyHomePageState() {
-    IO.getLeaderBoard().then((data) {
-      setState(() {
-        leaderBoardData = data;
-      });
-    });
-  }
+  _MyHomePageState() : activeWidget = const LeaderBoardPage();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text(activeWidget.title),
       ),
       body: Center(child: LayoutBuilder(
         builder: (context, constraints) {
@@ -80,20 +56,17 @@ class _MyHomePageState extends State<MyHomePage> {
           }
         },
       )),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _incrementCounter,
+      //   tooltip: 'Increment',
+      //   child: const Icon(Icons.add),
+      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 
   /// Build UI for mobile phones
   Widget _buildForVerticalScreen(BuildContext context) {
-    if (leaderBoardData == null) {
-      return const Text("Loading...");
-    }
-    return LeaderBoardPage(data: leaderBoardData!);
+    return activeWidget;
   }
 
   /// Build UI for iPad/PC

@@ -1,17 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:wdk_pro_league/elements/appBar.dart';
 import 'package:wdk_pro_league/elements/rank.dart';
 import 'package:wdk_pro_league/io.dart';
 // import 'elements/rank.dart';
 
 /// Leader Board Page
-///
-/// All data should be ready
-class LeaderBoardPage extends StatelessWidget {
-  const LeaderBoardPage({super.key, required this.data});
+class LeaderBoardPage extends MyPage {
+  final title = "WDK Pro League 排行榜";
 
-  final List<PlayerPreview> data;
+  const LeaderBoardPage({super.key});
+
+  @override
+  State<LeaderBoardPage> createState() => _LeaderBoardPageState();
+}
+
+class _LeaderBoardPageState extends State<LeaderBoardPage> {
+  List<PlayerPreview> data = [];
+
+  _LeaderBoardPageState() {
+    IO.getLeaderBoard().then((data) {
+      setState(() {
+        this.data = data;
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
