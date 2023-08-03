@@ -112,14 +112,12 @@ class _PlayerCardState extends CardState<PlayerCard> {
 
   @override
   Widget buildChild(BuildContext context) {
-    final Widget index = Styled.widget(
-      child: Text(
-        (widget.index + 1).toString(),
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 36,
-        ),
+    final Widget index = Text(
+      (widget.index + 1).toString(),
+      style: const TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+        fontSize: 36,
       ),
     )
         .center()
@@ -144,17 +142,27 @@ class _PlayerCardState extends CardState<PlayerCard> {
     } else {
       orderText = widget.info.orderCount.join("/");
     }
-    final Widget description = Text(
-      'pt: ${widget.info.currentPt}/${widget.info.thresholdPt}'
-      '  '
-      '顺位场次: $orderText'
-      '  '
-      'R: ${widget.info.rValue.round()}',
-      style: const TextStyle(
-        color: Colors.black26,
-        fontWeight: FontWeight.normal,
-        fontSize: 14,
-      ),
+    final descriptionStyle = TextStyle(
+      color: Theme.of(context).disabledColor,
+      fontSize: 14,
+    );
+    final description = Wrap(
+      alignment: WrapAlignment.start,
+      spacing: 12,
+      children: [
+        Text(
+          'pt: ${widget.info.currentPt}/${widget.info.thresholdPt}',
+          style: descriptionStyle,
+        ),
+        Text(
+          '顺位场次: $orderText',
+          style: descriptionStyle,
+        ),
+        Text(
+          'R: ${widget.info.rValue.round()}',
+          style: descriptionStyle,
+        ),
+      ],
     );
 
     return Row(children: [

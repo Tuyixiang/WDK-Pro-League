@@ -64,8 +64,8 @@ class GamePreviewCard extends StatefulWidget {
 
 class _GamePreviewCardState extends CardState<GamePreviewCard> {
   @override
-  double get height {
-    return 100;
+  double? get height {
+    return null;
   }
 
   /// 根据不同的得分使用不同颜色
@@ -97,24 +97,33 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
   Widget _buildPlayer(BuildContext context, GamePreview game, int seat) {
     final player = game.players[seat];
 
-    final nameDisplay = Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    // 座次、玩家名、玩家段位，优先在座次后面换行
+    final nameDisplay = Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Text(
           ["东", "南", "西", "北"][seat],
           style: TextStyle(fontSize: 16, color: Theme.of(context).hintColor),
         ),
-        Text(
-          player.playerName,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ).padding(horizontal: 8),
-        buildDan(context, player.currentDan),
+        Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                player.playerName,
+                style:
+                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ).padding(horizontal: 8),
+              buildDan(context, player.currentDan),
+            ]),
       ],
     );
 
     final pointDisplay = Text(
       game.playerPoints[seat].toString(),
       style: TextStyle(
+        letterSpacing: -0.5,
         fontSize: 24,
         fontWeight: FontWeight.bold,
         color: _colorFromPoint(game.playerPoints[seat]),
@@ -125,8 +134,9 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
       fontSize: 14,
       color: Theme.of(context).disabledColor,
     );
-    final resultDisplay = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    final resultDisplay = Wrap(
+      alignment: WrapAlignment.spaceEvenly,
+      spacing: 8,
       children: [
         Text(
           "${_formatDelta(game.ptDelta[seat])}pt",

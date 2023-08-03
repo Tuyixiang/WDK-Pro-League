@@ -6,8 +6,8 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
   bool pressed = false;
 
   /// 卡片的高度
-  double get height {
-    return 80;
+  double? get height {
+    return null;
   }
 
   /// 卡片的宽度
@@ -20,7 +20,7 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
     final card = Styled.widget(
             child: buildChild(context).padding(horizontal: 16, vertical: 8))
         .alignment(Alignment.center)
-        .constrained(maxWidth: maxWidth)
+        .constrained(maxWidth: maxWidth, height: height)
         .borderRadius(all: 15)
         .ripple()
         .backgroundColor(Colors.white, animate: true)
@@ -31,7 +31,6 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
           borderRadius: BorderRadius.circular(25),
           shadowColor: const Color(0x30000000),
         ) // shadow borderRadius
-        .constrained(height: height)
         .padding(horizontal: 12, vertical: 6) // margin
         .gestures(
           onTapChange: (tapStatus) => setState(() => pressed = tapStatus),
