@@ -13,6 +13,9 @@ class GamePreview(Deserializable):
     players: List[PlayerSnapshot]
     """参与的玩家，按照座位顺序"""
 
+    player_order_by_id: List[str]
+    """参与玩家的游戏结果排序"""
+
     player_points: List[int]
     """每个玩家获得的点数（当盘游戏的点数，非玩家累计点数）"""
 

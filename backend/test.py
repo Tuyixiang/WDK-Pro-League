@@ -21,7 +21,6 @@ for _ in range(40):
     )
 
     game_controller.apply_game(gd)
-    gd.print_log()
 
 # pprint(game_database)
 # pprint(player_database)

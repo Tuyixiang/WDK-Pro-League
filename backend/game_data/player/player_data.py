@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 import dataclasses
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List
 
 from ..player_snapshot import PlayerSnapshot
 from ..game_preview import GamePreview
@@ -36,7 +36,7 @@ class PlayerData(Deserializable):
     player_name: str
     """玩家登陆及显示名称"""
 
-    external_id: Optional[int]
+    external_ids: List[int]
     """玩家外部游戏 ID"""
 
     game_history: List[GamePreview]
@@ -73,13 +73,13 @@ class PlayerData(Deserializable):
 
     @staticmethod
     def new(
-        player_name: str, external_id: int = None, player_id: str = None
+        player_name: str, external_id: List[int] = None, player_id: str = None
     ) -> PlayerData:
         """创建一个新玩家"""
         return PlayerData(
             player_id=player_id or uuid.uuid4().hex,
             player_name=player_name,
-            external_id=external_id,
+            external_ids=external_id or [],
             game_history=[],
             current_dan=0,
             highest_dan=0,
@@ -91,15 +91,17 @@ class PlayerData(Deserializable):
     def __post_init__(self):
         self.update()
 
-    def update(self):
-        """根据分数计算段位晋级、降级，并更新数据"""
+    def update_dan(self):
+        """根据分数计算段位晋级、降级"""
         self.threshold_pt = DAN_THRESHOLD[self.current_dan]
         self.current_dan = min(max(self.current_dan, 0), N_DAN)
         if self.current_pt >= self.threshold_pt:
             # 升段
             if self.current_dan < N_DAN - 1:
                 self.current_dan += 1
-                self.highest_dan = max(self.highest_dan, self.current_dan)
+                if self.highest_dan < self.current_dan:
+                    self.highest_dan = self.current_dan
+                    self.highest_dan_pt = DAN_INITIAL_PT[self.current_dan]
                 self.current_pt = DAN_INITIAL_PT[self.current_dan]
             else:
                 self.current_pt = self.threshold_pt
@@ -110,13 +112,24 @@ class PlayerData(Deserializable):
                 self.current_pt = DAN_INITIAL_PT[self.current_dan]
             else:
                 self.current_pt = 0
+        elif self.current_dan == self.highest_dan:
+            self.highest_dan_pt = max(self.highest_dan_pt, self.current_pt)
         self.threshold_pt = DAN_THRESHOLD[self.current_dan]
+
+    def update_stats_from_game(self, game: GamePreview):
+        """仅使用一个新游戏，更新游戏统计变量"""
+        self.game_count += 1
+        order = game.player_order_by_id.index(self.player_id)
+        self.order_count[order] += 1
+
+    def update(self):
+        """完整更新计算缓存变量"""
+        self.update_dan()
         # 统计胜场
-        self.game_count = len(self.game_history)
+        self.game_count = 0
         self.order_count = [0, 0, 0, 0]
         for game in self.game_history:
-            seat = game.players.index(self)
-            self.order_count[seat] += 1
+            self.update_stats_from_game(game)
 
     def reset(self):
         """清除所有游戏记录和分数（仅用于全部重新计算分数！）"""
@@ -132,9 +145,9 @@ class PlayerData(Deserializable):
         self.game_history.append(game)
         self.current_pt += game.pt_delta[seat]
         self.r_value += game.r_delta[seat]
-        if self.current_dan == self.highest_dan:
-            self.highest_dan_pt = max(self.highest_dan_pt, self.current_pt)
-        self.update()
+
+        self.update_dan()
+        self.update_stats_from_game(game)
 
     @property
     def snapshot(self) -> PlayerSnapshot:

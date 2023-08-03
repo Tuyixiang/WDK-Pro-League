@@ -1,6 +1,9 @@
+from pprint import pprint
+
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from api import *
+from api.access import get_leader_board
 
 app = Flask(__name__)
 CORS(app)
@@ -20,10 +23,13 @@ def hello_world():
 
 @app.route("/<path:path>")
 def static_serve(path):
-    print("he")
     return send_from_directory("static", path)
 
 
 @app.route("/")
 def static_serve_index():
     return app.send_static_file("index.html")
+
+
+with app.app_context():
+    pprint(get_leader_board().json)

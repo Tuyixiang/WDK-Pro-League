@@ -10,6 +10,7 @@ from ..io import Deserializable
 from .player_data import PlayerData
 
 _DEFAULT_DATABASE_PATH = "player.db"
+_PRESET_PLAYER_PATH = "data/users.json"
 
 
 @dataclass
@@ -59,9 +60,9 @@ class PlayerDatabase(Deserializable):
             )
         ]
         self.external_id_map = {
-            player.external_id: player
+            external_id: player
             for player in self.all_player_data.values()
-            if player.external_id is not None
+            for external_id in player.external_ids
         }
 
 
@@ -73,11 +74,11 @@ except FileNotFoundError:
 
 # 读取预存玩家列表
 try:
-    initial_players = json.load(open("data/users.json"))
-    for player in initial_players:
+    preset_players = json.load(open(_PRESET_PLAYER_PATH))
+    for player in preset_players:
         if player["player_id"] not in player_database.all_player_data:
             player_database.create_player(**player)
 except FileNotFoundError:
-    print("未找到预设玩家列表 data/users.json", file=sys.stderr)
+    print(f"未找到预设玩家列表 {_PRESET_PLAYER_PATH}", file=sys.stderr)
     for i in range(8):
         player_database.create_player(f"玩家{chr(i + ord('A'))}", player_id=hex(i))
