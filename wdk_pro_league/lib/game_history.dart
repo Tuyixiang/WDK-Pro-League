@@ -61,6 +61,11 @@ class GamePreviewCard extends StatefulWidget {
 }
 
 class _GamePreviewCardState extends CardState<GamePreviewCard> {
+  @override
+  double get height {
+    return 100;
+  }
+
   /// 根据不同的得分使用不同颜色
   Color _colorFromPoint(int point) {
     final themeColor = Theme.of(context).primaryColor;
@@ -95,7 +100,7 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
       children: [
         Text(
           ["东", "南", "西", "北"][seat],
-          style: const TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16, color: Theme.of(context).hintColor),
         ),
         Text(
           player.playerName,
@@ -114,21 +119,26 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
       ),
     ).center();
 
+    final resultStyle = TextStyle(
+      fontSize: 14,
+      color: Theme.of(context).disabledColor,
+    );
     final resultDisplay = Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Text(
           "${_formatDelta(game.ptDelta[seat])}pt",
-          style: const TextStyle(fontSize: 14),
-        ).padding(right: 16),
+          style: resultStyle,
+        ),
         Text(
           "${_formatDelta(game.rDelta[seat])}R",
-          style: const TextStyle(fontSize: 14),
-        ).padding(right: 16),
+          style: resultStyle,
+        ),
       ],
     );
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         nameDisplay,
         pointDisplay,
@@ -137,11 +147,35 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
     ).expanded();
   }
 
+  /// 在卡片内绘制所有玩家的得分情况
   @override
   Widget buildChild(BuildContext context) {
     return Row(
-      children: List.generate(4, (i) => _buildPlayer(context, widget.data, i))
-          .toList(),
-    ).center();
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: List.generate(4, (i) => _buildPlayer(context, widget.data, i))
+            .toList());
+  }
+
+  /// 在卡片外标注游戏信息
+  @override
+  Widget buildWrapper(BuildContext context, Widget card) {
+    final header = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          widget.data.gameType,
+          style: TextStyle(
+            color: Theme.of(context).disabledColor,
+          ),
+        ),
+        Text(
+          widget.data.date.toLocal().toString(),
+          style: TextStyle(
+            color: Theme.of(context).disabledColor,
+          ),
+        ),
+      ],
+    ).padding(horizontal: 16, top: 8);
+    return Column(children: [header, card]).constrained(maxWidth: maxWidth);
   }
 }

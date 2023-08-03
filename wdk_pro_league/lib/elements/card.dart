@@ -17,7 +17,8 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
 
   @override
   Widget build(BuildContext context) {
-    return Styled.widget(child: buildChild(context))
+    final card = Styled.widget(
+            child: buildChild(context).padding(horizontal: 16, vertical: 8))
         .alignment(Alignment.center)
         .constrained(maxWidth: maxWidth)
         .borderRadius(all: 15)
@@ -39,10 +40,16 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
         )
         .scale(all: pressed ? 0.97 : 1.0, animate: true)
         .animate(const Duration(milliseconds: 150), Curves.easeOut);
+    return buildWrapper(context, card);
   }
 
   /// 构建卡片中的元素
   Widget buildChild(BuildContext context);
+
+  /// 在卡片外包裹元素
+  Widget buildWrapper(BuildContext context, Widget card) {
+    return card;
+  }
 
   /// 卡片点击后的回调
   void onTap() {}

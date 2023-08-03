@@ -135,6 +135,9 @@ class GameData {
   /// 玩家获得的 R
   final List<double> rDelta;
 
+  /// 游戏的类型（雀魂或手动录入）
+  final String gameType;
+
   GameData(Map<String, dynamic> data)
       : players = List<PlayerPreview>.from(
           data["players"].map((v) => PlayerPreview(v)),
@@ -146,7 +149,8 @@ class GameData {
         gameId = data["game_id"],
         uploadTime = DateTime.parse(data["upload_time"]),
         ptDelta = data["pt_delta"].cast<int>(),
-        rDelta = data["r_delta"].cast<double>();
+        rDelta = data["r_delta"].cast<double>(),
+        gameType = data["game_type"];
 }
 
 /// 部分的游戏数据
@@ -157,8 +161,8 @@ class GamePreview {
   /// 每个玩家获得的点数（当盘游戏的点数，非玩家累计点数）
   final List<int> playerPoints;
 
-  /// 实际进行游戏的日期
-  final DateTime? gameDate;
+  /// 游戏的日期
+  final DateTime date;
 
   /// Index 所用的唯一 key
   final String gameId;
@@ -169,15 +173,19 @@ class GamePreview {
   /// 玩家获得的 R
   final List<double> rDelta;
 
+  /// 游戏的类型（雀魂或手动录入）
+  final String gameType;
+
   GamePreview(Map<String, dynamic> data)
       : players = List<PlayerPreview>.from(
           data["players"].map((v) => PlayerPreview(v)),
         ),
         playerPoints = data["player_points"].cast<int>(),
-        gameDate = callIfNotNull(DateTime.parse, data["game_date"]),
+        date = DateTime.parse(data["date"]),
         gameId = data["game_id"],
         ptDelta = data["pt_delta"].cast<int>(),
-        rDelta = data["r_delta"].cast<double>();
+        rDelta = data["r_delta"].cast<double>(),
+        gameType = data["game_type"];
 }
 
 /// Placeholder 数据
