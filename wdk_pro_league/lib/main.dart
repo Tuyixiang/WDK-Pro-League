@@ -1,13 +1,17 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:wdk_pro_league/io.dart';
+import 'package:wdk_pro_league/elements/globalState.dart';
 import 'elements/appBar.dart';
 import 'leaderBoard.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => Loading(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -21,7 +25,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
-        fontFamily: "SourceHanSans",
+        fontFamily: "AlibabaPuHuiTi",
       ),
       home: const MyHomePage(),
     );
@@ -42,10 +46,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Overlay.of(context).insert(OverlayEntry(
+        builder: (context) => const LoadingWidget(),
+      ));
+    });
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(activeWidget.title),
+        title: Text(activeWidget.title,
+                style: const TextStyle(fontWeight: FontWeight.bold))
+            .center(),
       ),
       body: Center(child: LayoutBuilder(
         builder: (context, constraints) {

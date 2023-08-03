@@ -174,12 +174,16 @@ class GamePreview {
 Future<Map<String, dynamic>> sampleData =
     rootBundle.loadString("assets/sampleData.json").then((string) {
   var obj = jsonDecode(string);
-  print(obj);
   return obj;
 });
 
-// const apiBaseUrl = "http://127.0.0.1:5000";
-const apiBaseUrl = "";
+/// 在测试环境使用本地后端 URL
+String get apiBaseUrl {
+  if (const bool.fromEnvironment('dart.vm.product')) {
+    return "";
+  }
+  return "http://127.0.0.1:5000";
+}
 
 class IO {
   /// 获取排行榜

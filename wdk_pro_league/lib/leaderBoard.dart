@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
+import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:wdk_pro_league/elements/appBar.dart';
 import 'package:wdk_pro_league/elements/rank.dart';
 import 'package:wdk_pro_league/io.dart';
+
+import 'elements/globalState.dart';
 // import 'elements/rank.dart';
 
 /// Leader Board Page
 class LeaderBoardPage extends MyPage {
-  final title = "WDK Pro League 排行榜";
+  @override
+  String get title {
+    return "WDK Pro League 排行榜";
+  }
 
   const LeaderBoardPage({super.key});
 
@@ -18,17 +24,20 @@ class LeaderBoardPage extends MyPage {
 
 class _LeaderBoardPageState extends State<LeaderBoardPage> {
   List<PlayerPreview> data = [];
-
-  _LeaderBoardPageState() {
-    IO.getLeaderBoard().then((data) {
-      setState(() {
-        this.data = data;
-      });
-    });
-  }
+  bool initialized = false;
 
   @override
   Widget build(BuildContext context) {
+    if (!initialized) {
+      print("Start initializing leader board");
+      initialized = true;
+      Provider.of<Loading>(context).on(IO.getLeaderBoard).then((data) {
+        setState(() {
+          print("Leader board data fetched");
+          this.data = data;
+        });
+      });
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -81,7 +90,7 @@ class _PlayerCardState extends State<PlayerCard> {
         .elevation(
           pressed ? 0 : 20,
           borderRadius: BorderRadius.circular(25),
-          shadowColor: Color(0x30000000),
+          shadowColor: const Color(0x30000000),
         ) // shadow borderRadius
         .constrained(height: 80)
         .padding(horizontal: 12, vertical: 6) // margin
@@ -91,7 +100,7 @@ class _PlayerCardState extends State<PlayerCard> {
           onTap: () => print('onTap'),
         )
         .scale(all: pressed ? 0.97 : 1.0, animate: true)
-        .animate(Duration(milliseconds: 150), Curves.easeOut);
+        .animate(const Duration(milliseconds: 150), Curves.easeOut);
 
     final Widget index = Styled.widget(
       child: Text(
@@ -134,7 +143,7 @@ class _PlayerCardState extends State<PlayerCard> {
       style: const TextStyle(
         color: Colors.black26,
         fontWeight: FontWeight.normal,
-        fontSize: 12,
+        fontSize: 14,
       ),
     );
 

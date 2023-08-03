@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from pprint import pprint
 
@@ -11,11 +12,16 @@ from hashlib import sha3_256
 app = Flask(__name__)
 CORS(app)
 
+IS_DEVELOPMENT_MODE = os.getenv("FLASK_ENV") == "development"
+"""开发环境"""
+
 
 @access_blueprint.before_request
 @query_blueprint.before_request
 def check_key():
     """检查密钥，如不符合则拒绝访问"""
+    if IS_DEVELOPMENT_MODE:
+        return
     try:
         key = request.cookies.get("key")
         hashed = sha3_256(bytes.fromhex(key)).digest()
@@ -44,9 +50,12 @@ def static_serve_index():
     response = app.send_static_file("index.html")
     key = request.args.get("key")
     if key:
-        response.set_cookie("key", key, max_age=timedelta(days=365))
+        response.set_cookie("key", key, max_age=timedelta(days=365), secure=True)
     return response
 
 
 with app.app_context():
     pprint(get_leader_board().json)
+    print(f"App 已启动")
+    if IS_DEVELOPMENT_MODE:
+        print(f"（开发模式）")

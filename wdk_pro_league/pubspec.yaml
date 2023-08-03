@@ -39,6 +39,7 @@ dependencies:
   styled_widget: ^0.4.1
   dio: ^5.3.1
   collection: ^1.17.1
+  loading_indicator: ^3.1.1
 
 dev_dependencies:
   flutter_test:
@@ -82,12 +83,12 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: SourceHanSans
-      fonts:
-        - asset: assets/fonts/SourceHanSansCN-Regular.otf
     - family: Roboto
       fonts:
         - asset: assets/fonts/Roboto-Regular-14.ttf
+    - family: AlibabaPuHuiTi
+      fonts:
+        - asset: assets/fonts/AlibabaPuHuiTi-3-55-Regular.otf
         
   #   - family: Schyler
   #     fonts:
