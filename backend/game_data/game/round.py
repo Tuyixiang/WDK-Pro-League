@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 from dataclasses import dataclass, field
-from enum import Enum, auto
-from typing import List, Optional
+from enum import auto, IntEnum, StrEnum
+from typing import List, Optional, Tuple
 
 from game_data.io import Deserializable
 
@@ -12,7 +12,7 @@ NAGASHI_MANGAN_AS_DRAW = True
 """根据天凤/雀魂规则，荒牌流局视为流局（亲家听牌则连庄）"""
 
 
-class Wind(Enum):
+class Wind(IntEnum):
     """风"""
 
     East = 0
@@ -25,26 +25,39 @@ class Wind(Enum):
         return Wind((self.value + 1) % 4)
 
 
-class RoundEnding(Enum):
+class RoundEnding(StrEnum):
     """一局游戏结束的方式"""
 
-    NULL = auto()
-    """暂未填充"""
+    NULL = "NULL"
 
-    Ron = auto()
-    """荣和"""
+    Ron = "和"
 
-    Tsumo = auto()
-    """自摸"""
+    Tsumo = "自摸"
 
-    ExhaustiveDraw = auto()
-    """荒牌流局（不包括流局满贯）"""
+    ExhaustiveDraw = "荒牌流局"
 
-    AbortiveDraw = auto()
-    """流局（除荒牌流局和流局满贯之外的流局，均不计分）"""
+    SuufonRenda = "四风连打"
 
-    NagashiMangan = auto()
-    """流局满贯"""
+    KyuushuKyuuhai = "九种九牌"
+
+    SuuchaRiichi = "四家立直"
+
+    Suukaikan = "四开杠"
+
+    Sanchahou = "三家和"
+
+    NagashiMangan = "流局满贯"
+
+    @property
+    def is_abortive_draw(self):
+        """流局（除荒牌流局和流局满贯之外的流局，均不计分）"""
+        return self in [
+            RoundEnding.SuufonRenda,
+            RoundEnding.KyuushuKyuuhai,
+            RoundEnding.SuuchaRiichi,
+            RoundEnding.Suukaikan,
+            RoundEnding.Sanchahou,
+        ]
 
     @property
     def is_win(self):
@@ -53,6 +66,26 @@ class RoundEnding(Enum):
         if self == RoundEnding.NagashiMangan:
             return not NAGASHI_MANGAN_AS_DRAW
         return self in [RoundEnding.Ron, RoundEnding.Tsumo]
+
+    @staticmethod
+    def parse_tenhou(state: str) -> RoundEnding:
+        """解析天凤的信息，但会将自摸也归于和"""
+        if state == "和了":
+            return RoundEnding.Ron
+        elif state == "流局":
+            return RoundEnding.ExhaustiveDraw
+        elif state == "四風連打":
+            return RoundEnding.SuufonRenda
+        elif state == "九種九牌":
+            return RoundEnding.KyuushuKyuuhai
+        elif state == "四家立直":
+            return RoundEnding.SuuchaRiichi
+        elif state == "四開槓":
+            return RoundEnding.Suukaikan
+        elif state == "三家和":
+            return RoundEnding.Sanchahou
+        else:
+            return RoundEnding.NULL
 
 
 @dataclass
@@ -65,17 +98,20 @@ class RoundWin(Deserializable):
     winner: int
     """和牌玩家的座次（0-3）"""
 
+    loser: int
+    """放铳玩家的座次（0-3），自摸则为 winner"""
+
     han: int
     """番数"""
 
     fu: int
     """符数"""
 
-    loser: Optional[int] = field(default=None)
-    """放铳玩家的座次（0-3）"""
-
     yakuman: int = field(default=0)
     """役满倍数（包括累计役满）"""
+
+    yaku: List[Tuple[str, int]] = field(default_factory=list)
+    """役种（名称及番数）"""
 
     def __post_init__(self):
         # 累计役满计入役满倍数
@@ -85,7 +121,7 @@ class RoundWin(Deserializable):
     @classmethod
     def nagashi_mangan(cls, winner: int) -> RoundWin:
         """流局满贯所用的计分对象"""
-        return cls(winner, 4, 40)
+        return cls(winner, winner, 4, 40)
 
     @property
     def base_point(self) -> int:
@@ -107,8 +143,95 @@ class RoundWin(Deserializable):
 
 
 @dataclass
+class BaseRound(Deserializable):
+    """一局游戏的结果（无论采用何种方式录入的共同接口）"""
+
+    ending: RoundEnding
+
+    prevailing_wind: Wind
+    """场风"""
+
+    dealer: int
+    """亲家的座次（0-3）"""
+
+    honba: int
+    """本场数，从 0 开始计"""
+
+    initial_points: List[int] = field(default_factory=lambda: [25000] * 4)
+    """一局开始时各家的点数"""
+
+    result_points: List[List[int]] = field(default_factory=list)
+    """本局游戏各家的点数变化（如果有多个荣和，则分别记录）
+    
+    九种九牌等中止牌局，将记录 [[0, 0, 0, 0]]。故任何情况下至少有一项"""
+
+
+@dataclass
+class TenhouRound(BaseRound):
+    """一局游戏的结果（通过天凤 JSON 录入）"""
+
+    wins: List[RoundWin] = field(default_factory=list)
+    """和牌情况（可能包括 0-3 个），流局满贯时应为 4 番 40 符"""
+
+    @classmethod
+    def from_json(cls, obj: list) -> TenhouRound:
+        """从 JSON 数据中读取"""
+        wind = Wind(obj[0][0] // 4)
+        dealer = obj[0][0] % 4
+        honba = obj[0][1]
+        initial_points = obj[1]
+
+        state = obj[-1][0]
+        result_points = []
+        wins = []
+
+        ending = RoundEnding.parse_tenhou(state)
+        if ending == RoundEnding.Ron:
+            for i in range(1, len(obj[-1]), 2):
+                result_points.append(obj[-1][i])
+                winner, loser, _, win_description, *yaku_list = obj[-1][i + 1]
+                if winner == loser:
+                    ending = RoundEnding.Tsumo
+                yaku = []
+                for s in yaku_list:
+                    yaku_name, rest = s.split("(")
+                    yaku_han = rest.split("飜")[0]
+                    yaku.append((yaku_name, int(yaku_han)))
+                han = sum(y[1] for y in yaku)
+                if "符" in win_description:
+                    fu = win_description.split("符")[0]
+                else:
+                    fu = 40
+                wins.append(
+                    RoundWin(
+                        winner=winner,
+                        loser=loser,
+                        han=han,
+                        fu=fu,
+                        yaku=yaku,
+                    )
+                )
+        elif ending == RoundEnding.ExhaustiveDraw:
+            result_points.append(obj[-1][1])
+        elif ending.is_abortive_draw:
+            result_points.append([0, 0, 0, 0])
+        else:
+            print(f"未实现的结局：{state}")
+        return TenhouRound(
+            ending=ending,
+            prevailing_wind=wind,
+            dealer=dealer,
+            honba=honba,
+            initial_points=initial_points,
+            result_points=result_points,
+            wins=wins,
+        )
+
+
+# TODO 尚未完成
+@dataclass
 class RoundResult(Deserializable):
-    """一局游戏的结果"""
+    """一局游戏的结果（用于手动记录）"""
 
     dealer: int
     """亲家的座次（0-3）"""
@@ -119,7 +242,7 @@ class RoundResult(Deserializable):
     honba: int
     """本场数，从 0 开始计"""
 
-    ending: RoundEnding
+    ending: RoundEnding = field(default=RoundEnding.NULL)
     """结果的类型"""
 
     wins: List[RoundWin] = field(default_factory=list)
@@ -134,6 +257,15 @@ class RoundResult(Deserializable):
     tenpai: Optional[List[bool]] = field(default=None)
     """听牌状态（仅对荒牌流局有意义）"""
 
+    initial_points: List[int] = field(default_factory=lambda: [25000] * 4)
+    """一局开始时各家的点数"""
+
+    result_points: List[int] = field(init=False, repr=False)
+    """本局游戏各家的点数变化，缓存变量"""
+
+    after_points: List[int] = field(init=False, repr=False)
+    """一局结束时各家的点数，缓存变量"""
+
     @property
     def honba_points(self) -> int:
         """本场的额外点数"""
@@ -146,7 +278,7 @@ class RoundResult(Deserializable):
         riichi_points = 1000 * sum(self.riichi) + self.accumulated_riichi
 
         for win in self.wins:
-            assert win.loser is not None
+            assert win.loser != win.winner
 
             if win.yakuman is not None:
                 # 役满荣和
@@ -167,6 +299,8 @@ class RoundResult(Deserializable):
             points += 3 * self.honba_points
             player_points[win.winner] += points + riichi_points
             player_points[win.loser] -= points
+            self.accumulated_riichi = 0
+            riichi_points = 0
 
         return player_points
 
@@ -233,16 +367,25 @@ class RoundResult(Deserializable):
             # 算作和牌
             return self._compute_points_tsumo()
 
+    def update(self):
+        """计算所有临时变量"""
+        self.result_points = self.compute_points()
+        self.after_points = [
+            a + b for a, b in zip(self.initial_points, self.result_points)
+        ]
+
     def compute_points(self) -> List[int]:
         """计算一局游戏中每人得点。返回包含 4 个 int，按照座次排序（与亲家位置无关）"""
 
-        if self.ending == RoundEnding.Ron:
+        if self.ending == RoundEnding.NULL:
+            return [0] * 4
+        elif self.ending == RoundEnding.Ron:
             return self._compute_points_ron()
         elif self.ending == RoundEnding.Tsumo:
             return self._compute_points_tsumo()
         elif self.ending == RoundEnding.ExhaustiveDraw:
             return self._compute_points_exhaustive_draw()
-        elif self.ending == RoundEnding.AbortiveDraw:
+        elif self.ending.is_abortive_draw:
             return [0 - 1000 * self.riichi[i] for i in range(4)]
         elif self.ending == RoundEnding.NagashiMangan:
             return self._compute_points_nagashi_mangan()
@@ -258,7 +401,7 @@ class RoundResult(Deserializable):
         elif self.ending == RoundEnding.ExhaustiveDraw:
             assert self.tenpai is not None
             return self.tenpai[self.dealer]
-        elif self.ending == RoundEnding.AbortiveDraw:
+        elif self.ending.is_abortive_draw:
             return True
         elif self.ending == RoundEnding.NagashiMangan:
             return self.wins[0].winner == self.dealer

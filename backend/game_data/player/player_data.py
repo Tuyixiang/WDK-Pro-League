@@ -39,6 +39,9 @@ class PlayerData(Deserializable):
     external_ids: List[int]
     """玩家外部游戏 ID"""
 
+    external_names: List[str]
+    """玩家外部游戏名称"""
+
     game_history: List[GamePreview]
     """玩家历史所有游戏"""
 
@@ -73,13 +76,17 @@ class PlayerData(Deserializable):
 
     @staticmethod
     def new(
-        player_name: str, external_id: List[int] = None, player_id: str = None
+        player_name: str,
+        external_ids: List[int] = None,
+        external_names: List[str] = None,
+        player_id: str = None,
     ) -> PlayerData:
         """创建一个新玩家"""
         return PlayerData(
             player_id=player_id or uuid.uuid4().hex,
             player_name=player_name,
-            external_ids=external_id or [],
+            external_ids=external_ids or [],
+            external_names=external_names or [],
             game_history=[],
             current_dan=0,
             highest_dan=0,

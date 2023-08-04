@@ -26,6 +26,9 @@ class PlayerDatabase(Deserializable):
     external_id_map: Dict[int, PlayerData] = field(init=False, repr=False)
     """利用外部 ID 作为索引，缓存变量"""
 
+    external_name_map: Dict[str, PlayerData] = field(init=False, repr=False)
+    """利用外部用户名作为索引，缓存变量"""
+
     leader_board: list = field(init=False, repr=False)
     """按照名次排序的玩家记录，缓存变量"""
 
@@ -63,6 +66,11 @@ class PlayerDatabase(Deserializable):
             external_id: player
             for player in self.all_player_data.values()
             for external_id in player.external_ids
+        }
+        self.external_name_map = {
+            external_name: player
+            for player in self.all_player_data.values()
+            for external_name in player.external_names
         }
 
 
