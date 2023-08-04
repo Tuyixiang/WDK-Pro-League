@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:loading_indicator/loading_indicator.dart';
+import 'package:provider/provider.dart';
 
 /// 加载界面及逻辑
 
@@ -17,7 +17,7 @@ class Loading with ChangeNotifier {
     notifyListeners();
   }
 
-  Future on(Future Function() func) async {
+  Future<T> on<T>(Future<T> Function() func) async {
     await Future.delayed(const Duration());
     if (!const bool.fromEnvironment('dart.vm.product')) {
       // 在测试环境下等待以模拟网络环境

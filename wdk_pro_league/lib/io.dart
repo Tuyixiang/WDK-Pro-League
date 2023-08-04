@@ -161,6 +161,9 @@ class GamePreview {
   /// 每个玩家获得的点数（当盘游戏的点数，非玩家累计点数）
   final List<int> playerPoints;
 
+  /// 参与玩家的游戏结果排序
+  final List<String> orderedPlayerIds;
+
   /// 游戏的日期
   final DateTime date;
 
@@ -181,6 +184,7 @@ class GamePreview {
           data["players"].map((v) => PlayerPreview(v)),
         ),
         playerPoints = data["player_points"].cast<int>(),
+        orderedPlayerIds = data["ordered_player_ids"].cast<String>(),
         date = DateTime.parse(data["date"]),
         gameId = data["game_id"],
         ptDelta = data["pt_delta"].cast<int>(),

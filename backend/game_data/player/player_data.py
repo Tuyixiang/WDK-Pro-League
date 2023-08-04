@@ -119,7 +119,7 @@ class PlayerData(Deserializable):
     def update_stats_from_game(self, game: GamePreview):
         """仅使用一个新游戏，更新游戏统计变量"""
         self.game_count += 1
-        order = game.player_order_by_id.index(self.player_id)
+        order = game.ordered_player_ids.index(self.player_id)
         self.order_count[order] += 1
 
     def update(self):

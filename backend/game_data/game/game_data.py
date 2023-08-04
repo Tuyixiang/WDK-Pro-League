@@ -76,7 +76,7 @@ class GameData(Deserializable):
         return [p for p, _ in self.sorted_player_points]
 
     @property
-    def player_order_by_id(self) -> List[str]:
+    def ordered_player_ids(self) -> List[str]:
         """参与玩家的游戏结果排序"""
         return [p.player_id for p, _ in self.sorted_player_points]
 
