@@ -10,26 +10,12 @@ from data.keys import KEY_HASHED
 from hashlib import sha3_256
 
 app = Flask(__name__)
-CORS(app)
 
 IS_DEVELOPMENT_MODE = os.getenv("FLASK_ENV") == "development"
 """开发环境"""
 
-
-@access_blueprint.before_request
-@query_blueprint.before_request
-def check_key():
-    """检查密钥，如不符合则拒绝访问"""
-    if IS_DEVELOPMENT_MODE:
-        return
-    try:
-        key = request.cookies.get("key")
-        hashed = sha3_256(bytes.fromhex(key)).digest()
-        if hashed == KEY_HASHED:
-            return
-    except (TypeError, ValueError):
-        pass
-    return no_key_handler()
+if IS_DEVELOPMENT_MODE:
+    CORS(app)
 
 
 # 访问路径
@@ -40,6 +26,31 @@ app.register_blueprint(query_blueprint, url_prefix="/api/query")
 app.register_error_handler(InvalidIdException, invalid_id_handler)
 
 
+@app.before_request
+def check_key():
+    """检查密钥，如不符合则拒绝访问"""
+    if IS_DEVELOPMENT_MODE:
+        return
+    try:
+        key = request.args.get("key") or request.cookies.get("key")
+        hashed = sha3_256(bytes.fromhex(key)).digest()
+        if hashed == KEY_HASHED:
+            return
+    except (TypeError, ValueError):
+        pass
+    return no_key_handler()
+
+
+@app.after_request
+def save_key_to_cookie(response):
+    """如果请求包含密钥，则将其保存至 cookie 中"""
+    if IS_DEVELOPMENT_MODE:
+        return
+    key = request.args.get("key")
+    if key:
+        response.set_cookie("key", key, max_age=timedelta(days=365), secure=True)
+
+
 @app.route("/<path:path>")
 def static_serve(path):
     return send_from_directory("static", path)
@@ -48,9 +59,6 @@ def static_serve(path):
 @app.route("/")
 def static_serve_index():
     response = app.send_static_file("index.html")
-    key = request.args.get("key")
-    if key:
-        response.set_cookie("key", key, max_age=timedelta(days=365), secure=True)
     return response
 
 
