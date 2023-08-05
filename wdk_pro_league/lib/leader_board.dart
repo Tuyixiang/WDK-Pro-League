@@ -125,7 +125,7 @@ class _PlayerCardState extends CardState<PlayerCard> {
           style: descriptionStyle,
         ),
         Text(
-          '顺位场次: $orderText',
+          '战绩: $orderText',
           style: descriptionStyle,
         ),
         Text(

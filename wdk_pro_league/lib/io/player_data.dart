@@ -49,7 +49,7 @@ class PlayerData {
         thresholdPt = data["threshold_pt"],
         rValue = data["r_value"],
         gameHistory = List<GamePreview>.from(
-          data["game_history"].map((v) => GamePreview(v)),
+          data["game_history"].map((v) => GamePreview.fromJson(v)),
         ),
         gameCount = data["game_count"],
         orderCount = data["order_count"].cast<int>();

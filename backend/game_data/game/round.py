@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from enum import auto, IntEnum, StrEnum
 from typing import List, Optional, Tuple
 
+from .names import YAKU_NAMES
 from game_data.io import Deserializable
 
 
@@ -196,7 +197,7 @@ class TenhouRound(BaseRound):
                 for s in yaku_list:
                     yaku_name, rest = s.split("(")
                     yaku_han = rest.split("飜")[0]
-                    yaku.append((yaku_name, int(yaku_han)))
+                    yaku.append((YAKU_NAMES.get(yaku_name, yaku_name), int(yaku_han)))
                 han = sum(y[1] for y in yaku)
                 if "符" in win_description:
                     fu = int(win_description.split("符")[0])

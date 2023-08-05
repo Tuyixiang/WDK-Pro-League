@@ -96,13 +96,26 @@ class RoundResultCard extends StatefulWidget {
 
 class _RoundResultCardState extends CardState<RoundResultCard> {
   @override
-  Widget buildChild(BuildContext context) => Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          _buildPlayerList(context),
-        ],
-      );
+  Widget buildChild(BuildContext context) =>
+      LayoutBuilder(builder: (context, constraints) {
+        if (constraints.maxWidth < 560) {
+          return Column(
+            children: [
+              _buildPlayerList(context),
+              const SizedBox(height: 8),
+              Row(children: [_buildWin(context)]).constrained(maxWidth: 400),
+            ],
+          );
+        } else {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildPlayerList(context),
+              _buildWin(context),
+            ],
+          );
+        }
+      });
 
   /// 绘制一局游戏中得分/失分的数字
   Widget _buildPointDelta(BuildContext context, int delta) {
@@ -190,17 +203,108 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
             ],
           ),
         ),
-      );
+      ).constrained(maxWidth: 400);
 
-  /// 绘制和牌标题（如“九种九牌”或“自摸 3番30符”）
+  /// 绘制结束类型
+  Widget _buildEnding(BuildContext context) {
+    if (widget.ending != "和" && widget.ending != "自摸") {
+      return Text(widget.ending, style: Theme.of(context).textTheme.titleMedium)
+          .bold()
+          .invertWithColor(Colors.grey.shade300, foreground: Colors.black);
+    }
+    return Text(widget.ending, style: Theme.of(context).textTheme.titleMedium)
+        .bold()
+        .invertWithColor(Theme.of(context).primaryColorLight,
+            foreground: Colors.black);
+  }
+
+  /// 绘制和牌大小（如“3番30符”）
   Widget _buildWinTitle(BuildContext context) {
-    switch (widget.ending) {}
-    throw UnimplementedError();
+    if (widget.ending != "和" && widget.ending != "自摸") {
+      return Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildEnding(context),
+          ]);
+    }
+    final han = widget.win!.han;
+    final fu = widget.win!.fu;
+    final yakuman = widget.win!.yakuman;
+    final theme = Theme.of(context);
+    final style = theme.textTheme.titleMedium;
+    final Widget winText;
+    if (yakuman >= 2) {
+      winText = Text("${numberNames[yakuman - 1]}倍役满", style: style)
+          .bold()
+          .invertWithColor(theme.primaryColorLight,
+              foreground: theme.primaryColor);
+    } else if (yakuman > 0) {
+      winText = Text("役满", style: style).bold().invertWithColor(
+          theme.primaryColorLight,
+          foreground: theme.primaryColor);
+    } else if (han >= 12) {
+      winText = Text("三倍满", style: style).bold().textColor(theme.primaryColor);
+    } else if (han >= 8) {
+      winText = Text("倍满", style: style).bold().textColor(theme.primaryColor);
+    } else if (han >= 6) {
+      winText = Text("跳满", style: style).bold().textColor(theme.primaryColor);
+    } else if ((han >= 4 && fu >= 30) || (han >= 3 && fu >= 60)) {
+      winText = Text("满贯", style: style).bold();
+    } else {
+      winText = Text("$han番$fu符", style: style);
+    }
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          winText,
+          const SizedBox(width: 16),
+          _buildEnding(context),
+        ]);
+  }
+
+  /// 绘制役种
+  Widget _buildYaku(BuildContext context, String name, int han) {
+    final style = Theme.of(context).textTheme.bodySmall;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(name, style: style),
+        const SizedBox(width: 1, height: 20)
+            .backgroundColor(Colors.white)
+            .padding(horizontal: 4),
+        Text(han.toString(), style: style).bold(),
+      ],
+    )
+        .padding(horizontal: 6)
+        .backgroundColor(Colors.grey.shade300)
+        .clipRRect(all: 25)
+        .padding(bottom: 8);
   }
 
   /// 绘制和牌信息
   Widget _buildWin(BuildContext context) {
-    throw UnimplementedError();
+    if (widget.ending != "和" && widget.ending != "自摸") {
+      return Column(
+        children: [
+          _buildWinTitle(context),
+        ],
+      ).expanded();
+    }
+    return Column(
+      children: [
+        _buildWinTitle(context),
+        const Divider(),
+        Wrap(
+          spacing: 16,
+          children: widget.win!.yaku
+              .map((item) => _buildYaku(context, item.$1, item.$2))
+              .toList(),
+        )
+      ],
+    ).expanded();
   }
 
   @override

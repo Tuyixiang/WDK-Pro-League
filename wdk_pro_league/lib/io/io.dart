@@ -54,11 +54,12 @@ class IO {
     try {
       final response = await dio.get("$apiBaseUrl/api/access/game_history");
       return List<GamePreview>.from(
-          response.data.map((obj) => GamePreview(obj)));
+          response.data.map((obj) => GamePreview.fromJson(obj)));
     } catch (e) {
       print(e);
       final data = (await sampleData)["gameHistory"];
-      return List<GamePreview>.from(data.map((obj) => GamePreview(obj)));
+      return List<GamePreview>.from(
+          data.map((obj) => GamePreview.fromJson(obj)));
     }
   }
 
@@ -93,10 +94,10 @@ class IO {
           await dio.get("$apiBaseUrl/api/query/game", queryParameters: {
         "game_id": gameId,
       });
-      return GameData(response.data);
+      return GameData.fromJson(response.data);
     } catch (e) {
       print(e);
-      return GameData((await sampleData)["game"]);
+      return GameData.fromJson((await sampleData)["game"]);
     }
   }
 

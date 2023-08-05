@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
+import 'package:wdk_pro_league/elements/game_preview.dart';
 
 import 'elements/loading.dart';
 import 'elements/page.dart';
@@ -44,9 +45,14 @@ class _GameViewPageState extends State<GameViewPage> {
     final body = data == null
         ? const SizedBox.shrink()
         : ListView.builder(
-            itemCount: data!.rounds.length,
-            itemBuilder: (context, index) => RoundResultView(
-                gameData: data!, roundData: data!.rounds[index]),
+            itemCount: data!.rounds.length + 1,
+            itemBuilder: (context, index) {
+              if (index == data!.rounds.length) {
+                return GamePreviewCard(data: data!.preview);
+              }
+              return RoundResultView(
+                  gameData: data!, roundData: data!.rounds[index]);
+            },
           );
 
     return buildPage(

@@ -20,8 +20,6 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
     final card = Styled.widget(
             child: buildChild(context).padding(horizontal: 16, vertical: 8))
         .alignment(Alignment.center)
-        .constrained(maxWidth: maxWidth, height: height)
-        .borderRadius(all: 15)
         .ripple()
         .backgroundColor(Colors.white, animate: true)
         .clipRRect(all: 25) // clip ripple
@@ -31,10 +29,11 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
           borderRadius: BorderRadius.circular(25),
           shadowColor: const Color(0x30000000),
         ) // shadow borderRadius
+        .constrained(maxWidth: maxWidth, height: height)
+        .center()
         .padding(horizontal: 12, vertical: 6) // margin
         .gestures(
           onTapChange: (tapStatus) => setState(() => pressed = tapStatus),
-          onTapDown: (details) => print('tapDown'),
           onTap: () => onTap(context),
         )
         .scale(all: pressed ? 0.97 : 1.0, animate: true)
@@ -49,7 +48,10 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
             DefaultTextStyle(
               style: TextStyle(color: Theme.of(context).disabledColor),
               child: hint,
-            ).constrained(maxWidth: maxWidth).padding(horizontal: 16, top: 8),
+            )
+                .constrained(maxWidth: maxWidth)
+                .center()
+                .padding(horizontal: 16, top: 8),
             card,
           ]));
     }
