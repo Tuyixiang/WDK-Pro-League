@@ -70,7 +70,7 @@ class GameDataController(Deserializable):
                 players.append(
                     self.player_database.create_player(
                         player_name=f"雀魂玩家-{ext_player_data['name']}",
-                        external_id=[external_player_id],
+                        external_ids=[external_player_id],
                     )
                 )
 
