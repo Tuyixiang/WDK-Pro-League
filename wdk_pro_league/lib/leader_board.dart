@@ -4,9 +4,10 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:wdk_pro_league/elements/card.dart';
 import 'package:wdk_pro_league/game_history.dart';
 
-import 'io.dart';
-import 'elements/rank.dart';
 import 'elements/loading.dart';
+import 'elements/rank.dart';
+import 'io/io.dart';
+import 'io/player_data.dart';
 
 /// Leader Board Page
 class LeaderBoardPage extends StatefulWidget {
@@ -123,7 +124,7 @@ class _PlayerCardState extends CardState<PlayerCard> {
         .center()
         .card(shape: const CircleBorder(), color: colorFromIndex(widget.index))
         .width(60)
-        .padding(horizontal: 8);
+        .padding(right: 8);
 
     final Widget name = Row(children: [
       Text(

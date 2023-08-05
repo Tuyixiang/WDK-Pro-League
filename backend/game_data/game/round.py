@@ -199,7 +199,7 @@ class TenhouRound(BaseRound):
                     yaku.append((yaku_name, int(yaku_han)))
                 han = sum(y[1] for y in yaku)
                 if "符" in win_description:
-                    fu = win_description.split("符")[0]
+                    fu = int(win_description.split("符")[0])
                 else:
                     fu = 40
                 wins.append(

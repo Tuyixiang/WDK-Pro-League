@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-import '../io.dart';
+import '../io/game_data.dart';
 import 'card.dart';
 import 'rank.dart';
 

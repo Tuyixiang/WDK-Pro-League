@@ -4,7 +4,8 @@ import 'package:styled_widget/styled_widget.dart';
 
 import 'elements/game_preview.dart';
 import 'elements/loading.dart';
-import 'io.dart';
+import 'io/game_data.dart';
+import 'io/io.dart';
 
 class GameHistoryPage extends StatefulWidget {
   const GameHistoryPage({super.key});

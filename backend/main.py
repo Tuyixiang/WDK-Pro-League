@@ -45,10 +45,11 @@ def check_key():
 def save_key_to_cookie(response):
     """如果请求包含密钥，则将其保存至 cookie 中"""
     if IS_DEVELOPMENT_MODE:
-        return
+        return response
     key = request.args.get("key")
     if key:
         response.set_cookie("key", key, max_age=timedelta(days=365), secure=True)
+    return response
 
 
 @app.route("/<path:path>")

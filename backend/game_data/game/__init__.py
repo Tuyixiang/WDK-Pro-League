@@ -5,9 +5,12 @@ __all__ = [
     # History IO
     "game_database",
     "GameData",
+    "GameDatabase",
     # Round details
     "Wind",
     "RoundEnding",
     "RoundWin",
     "RoundResult",
+    "BaseRound",
+    "TenhouRound",
 ]

@@ -11,8 +11,7 @@ from ..game_preview import GamePreview
 from ..io import Deserializable
 
 from ..player.player_data import PlayerSnapshot
-from .round import RoundResult
-
+from .round import RoundResult, BaseRound
 
 N_DAN = 10
 """段位数量"""
@@ -39,7 +38,7 @@ class GameData(Deserializable):
     player_points: List[int]
     """每个玩家获得的点数（当盘游戏的点数，非玩家累计点数）"""
 
-    rounds: List[RoundResult] = field(default_factory=list)
+    rounds: List[BaseRound] = field(default_factory=list)
     """每一局的结果，可能为空（只计点数）"""
 
     game_date: Optional[datetime] = field(default=None)
