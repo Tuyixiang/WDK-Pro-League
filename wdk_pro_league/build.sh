@@ -1,5 +1,5 @@
 #!/bin/sh
-flutter build web --dart-define=FLUTTER_WEB_CANVASKIT_URL=https://cdnjs.cloudflare.com/ajax/libs/canvaskit-wasm/0.38.2/
+flutter build web --dart-define=FLUTTER_WEB_CANVASKIT_URL=assets/canvaskit/
 
 rm -rf ../backend/static
 

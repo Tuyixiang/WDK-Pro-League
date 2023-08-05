@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:wdk_pro_league/elements/card.dart';
+import 'package:wdk_pro_league/elements/page.dart';
 import 'package:wdk_pro_league/game_history.dart';
 
+import 'elements/basic.dart';
 import 'elements/loading.dart';
-import 'elements/rank.dart';
 import 'io/io.dart';
 import 'io/player_data.dart';
 
@@ -40,47 +41,22 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
         });
       });
     }
-    return Scaffold(
-        appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: const Text("WDK Pro League 排行榜",
-                  style: TextStyle(fontWeight: FontWeight.bold))
-              .center(),
-          actions: [
-            IconButton(
-              onPressed: () {
-                Navigator.of(context).push(_loadHistoryPage());
-              },
-              icon: const Icon(Icons.history),
-            )
-          ],
-        ),
-        body: ListView.builder(
-          itemCount: data.length,
-          itemBuilder: (context, index) =>
-              PlayerCard(index: index, info: data[index]),
-        ));
-  }
-
-  /// 加载历史页面
-  Route _loadHistoryPage() {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          GameHistoryPage(),
-      // 从下至上弹出的动画
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(0.0, 1.0);
-        const end = Offset.zero;
-        const curve = Curves.ease;
-
-        var tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
-      },
+    return buildPage(
+      context: context,
+      title: "WDK Pro League 排行榜",
+      actions: [
+        IconButton(
+          onPressed: () {
+            Navigator.of(context).push(loadPage(const GameHistoryPage()));
+          },
+          icon: const Icon(Icons.history),
+        )
+      ],
+      body: ListView.builder(
+        itemCount: data.length,
+        itemBuilder: (context, index) =>
+            PlayerCard(index: index, info: data[index]),
+      ),
     );
   }
 }
@@ -94,7 +70,7 @@ class PlayerCard extends StatefulWidget {
   const PlayerCard({super.key, required this.index, required this.info});
 
   @override
-  _PlayerCardState createState() => _PlayerCardState();
+  State<PlayerCard> createState() => _PlayerCardState();
 }
 
 class _PlayerCardState extends CardState<PlayerCard> {
@@ -126,16 +102,9 @@ class _PlayerCardState extends CardState<PlayerCard> {
         .width(60)
         .padding(right: 8);
 
-    final Widget name = Row(children: [
-      Text(
-        widget.info.playerName,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
-      ).padding(right: 8),
-      buildDan(context, widget.info.currentDan),
-    ]).padding(bottom: 5);
+    final Widget name =
+        buildPlayerName(context, widget.info.playerName, widget.info.currentDan)
+            .padding(bottom: 5);
 
     final String orderText;
     if (widget.info.gameCount == 0) {

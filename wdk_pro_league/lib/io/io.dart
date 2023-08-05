@@ -88,11 +88,6 @@ class IO {
 
   /// 从后端抓取游戏信息
   static Future<GameData> _fetchGameData(String gameId) async {
-    final response =
-        await dio.get("$apiBaseUrl/api/query/game", queryParameters: {
-      "game_id": gameId,
-    });
-    return GameData(response.data);
     try {
       final response =
           await dio.get("$apiBaseUrl/api/query/game", queryParameters: {

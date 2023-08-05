@@ -35,11 +35,24 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
         .gestures(
           onTapChange: (tapStatus) => setState(() => pressed = tapStatus),
           onTapDown: (details) => print('tapDown'),
-          onTap: onTap,
+          onTap: () => onTap(context),
         )
         .scale(all: pressed ? 0.97 : 1.0, animate: true)
         .animate(const Duration(milliseconds: 150), Curves.easeOut);
-    return buildWrapper(context, card);
+    final hint = buildHint(context);
+    if (hint == null) {
+      return buildWrapper(context, card);
+    } else {
+      return buildWrapper(
+          context,
+          Column(children: [
+            DefaultTextStyle(
+              style: TextStyle(color: Theme.of(context).disabledColor),
+              child: hint,
+            ).constrained(maxWidth: maxWidth).padding(horizontal: 16, top: 8),
+            card,
+          ]));
+    }
   }
 
   /// 构建卡片中的元素
@@ -50,6 +63,11 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
     return card;
   }
 
+  /// 卡片上方的提示
+  Widget? buildHint(BuildContext context) {
+    return null;
+  }
+
   /// 卡片点击后的回调
-  void onTap() {}
+  void onTap(BuildContext context) {}
 }

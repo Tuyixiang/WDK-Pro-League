@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:styled_widget/styled_widget.dart';
+import 'package:wdk_pro_league/elements/page.dart';
 
+import '../game_view.dart';
 import '../io/game_data.dart';
+import 'basic.dart';
 import 'card.dart';
-import 'rank.dart';
 
 class GamePreviewCard extends StatefulWidget {
   final GamePreview data;
@@ -33,18 +35,19 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
 
   /// 根据不同的得分使用不同颜色
   Color _colorFromPoint(int point) {
-    final themeColor = Theme.of(context).primaryColor;
+    final scheme = Theme.of(context).colorScheme;
     if (point < 0) {
-      return Colors.deepOrangeAccent;
+      return scheme.error;
     } else if (point < 12500) {
       return Color.alphaBlend(
-          Colors.grey.shade500.withAlpha(192), Colors.deepOrangeAccent);
+          Colors.grey.shade500.withAlpha(192), scheme.error);
     } else if (point <= 25000) {
       return Colors.grey.shade600;
     } else if (point <= 50000) {
-      return Color.alphaBlend(Colors.grey.shade500.withAlpha(64), themeColor);
+      return Color.alphaBlend(
+          Colors.grey.shade500.withAlpha(64), scheme.primary);
     } else {
-      return themeColor;
+      return scheme.primary;
     }
   }
 
@@ -64,24 +67,10 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
     final nameDisplay = Wrap(
       alignment: WrapAlignment.center,
       crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 8,
       children: [
-        Text(
-          ["东", "南", "西", "北"][seat],
-          style: TextStyle(fontSize: 16, color: Theme.of(context).hintColor),
-        ),
-        Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                player.playerName,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ).padding(horizontal: 8),
-              buildDan(context, player.currentDan),
-            ]),
+        buildSeat(context, seat),
+        buildPlayerName(context, player.playerName, player.currentDan),
       ],
     );
 
@@ -163,24 +152,24 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
 
   /// 在卡片外标注游戏信息
   @override
-  Widget buildWrapper(BuildContext context, Widget card) {
-    final header = Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          widget.data.gameType,
-          style: TextStyle(
-            color: Theme.of(context).disabledColor,
+  Widget? buildHint(BuildContext context) => Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            widget.data.gameType,
           ),
-        ),
-        Text(
-          widget.data.date.toLocal().toString(),
-          style: TextStyle(
-            color: Theme.of(context).disabledColor,
+          Text(
+            widget.data.date.toLocal().toString(),
           ),
-        ),
-      ],
-    ).constrained(maxWidth: maxWidth).padding(horizontal: 16, top: 8);
-    return Column(children: [header, card]);
+        ],
+      );
+
+  /// 点击查看游戏详情
+  @override
+  void onTap(BuildContext context) {
+    Future.delayed(const Duration()).then((a) {
+      Navigator.of(context)
+          .push(loadPage(GameViewPage(gameId: widget.data.gameId)));
+    });
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:styled_widget/styled_widget.dart';
+import 'package:wdk_pro_league/elements/page.dart';
 
 import 'elements/game_preview.dart';
 import 'elements/loading.dart';
@@ -14,23 +14,17 @@ class GameHistoryPage extends StatefulWidget {
 }
 
 class _GameHistoryPageState extends State<GameHistoryPage> {
-  List<GamePreview> data = [];
-  bool initialized = false;
+  List<GamePreview>? data;
 
   bool sortByOrder = false;
 
-  _GameHistoryPageState() {
-    if (IO.cachedGameHistory != null) {
-      data = IO.cachedGameHistory!;
-      initialized = true;
-    }
-  }
+  _GameHistoryPageState() : data = IO.cachedGameHistory;
 
   @override
   Widget build(BuildContext context) {
-    if (!initialized) {
+    if (data == null) {
       print("Start initializing game history");
-      initialized = true;
+      data = [];
       Provider.of<Loading>(context).on(IO.getGameHistory).then((data) {
         print("Game history data fetched");
         setState(() {
@@ -38,25 +32,23 @@ class _GameHistoryPageState extends State<GameHistoryPage> {
         });
       });
     }
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text("游戏历史", style: TextStyle(fontWeight: FontWeight.bold))
-            .center(),
-        actions: [
-          IconButton(
-            onPressed: toggleSortByOrder,
-            icon: Icon(sortByOrder
-                ? Icons.format_list_bulleted
-                : Icons.format_list_numbered),
-          )
-        ],
-      ),
+    return buildPage(
+      context: context,
+      title: "游戏历史",
+      // 按钮来切换是否根据名次排序
+      actions: [
+        IconButton(
+          onPressed: toggleSortByOrder,
+          icon: Icon(sortByOrder
+              ? Icons.format_list_bulleted
+              : Icons.format_list_numbered),
+        )
+      ],
       // 为每个游戏记录生成卡片（倒序）
       body: ListView.builder(
-        itemCount: data.length,
+        itemCount: data!.length,
         itemBuilder: (context, index) => GamePreviewCard(
-            data: data[data.length - index - 1], sortByOrder: sortByOrder),
+            data: data![data!.length - index - 1], sortByOrder: sortByOrder),
       ),
     );
   }

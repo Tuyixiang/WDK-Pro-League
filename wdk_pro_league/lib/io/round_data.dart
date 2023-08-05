@@ -14,6 +14,9 @@ class RoundData {
   /// 结局（中文）
   final String ending;
 
+  /// 初始分数
+  final List<int> initialPoints;
+
   /// 分数增减（至少一项）
   final List<List<int>> resultPoints;
 
@@ -25,6 +28,7 @@ class RoundData {
     required this.honba,
     required this.dealer,
     required this.ending,
+    required this.initialPoints,
     required this.resultPoints,
     required this.wins,
   });
@@ -35,6 +39,7 @@ class RoundData {
         honba: obj["honba"],
         dealer: obj["dealer"],
         ending: obj["ending"],
+        initialPoints: obj["initial_points"].cast<int>(),
         resultPoints: obj["result_points"]
             .map<List<int>>((e) => List<int>.from(e))
             .toList(),
