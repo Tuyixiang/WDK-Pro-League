@@ -73,17 +73,17 @@ class RoundEnding(StrEnum):
         """解析天凤的信息，但会将自摸也归于和"""
         if state == "和了":
             return RoundEnding.Ron
-        elif state == "流局":
+        elif state in ["流局", "Ryuukyoku"]:
             return RoundEnding.ExhaustiveDraw
-        elif state == "四風連打":
+        elif state in ["四風連打", "Suufon Renda"]:
             return RoundEnding.SuufonRenda
-        elif state == "九種九牌":
+        elif state in ["九種九牌", "Kyuushu Kyuuhai"]:
             return RoundEnding.KyuushuKyuuhai
-        elif state == "四家立直":
+        elif state in ["四家立直", "Suucha Riichi"]:
             return RoundEnding.SuuchaRiichi
-        elif state == "四開槓":
+        elif state in ["四開槓", "Suukaikan"]:
             return RoundEnding.Suukaikan
-        elif state == "三家和":
+        elif state in ["三家和", "Sanchahou"]:
             return RoundEnding.Sanchahou
         else:
             return RoundEnding.NULL
@@ -197,7 +197,10 @@ class TenhouRound(BaseRound):
                 for s in yaku_list:
                     yaku_name, rest = s.split("(")
                     yaku_han = rest.split("飜")[0]
-                    yaku.append((YAKU_NAMES.get(yaku_name, yaku_name), int(yaku_han)))
+                    if yaku_han != "0":
+                        yaku.append(
+                            (YAKU_NAMES.get(yaku_name, yaku_name), int(yaku_han))
+                        )
                 han = sum(y[1] for y in yaku)
                 if "符" in win_description:
                     fu = int(win_description.split("符")[0])

@@ -183,5 +183,6 @@ except FileNotFoundError:
 for _, external_id, func, data in sorted(game_json_objs, key=lambda x: x[0]):
     try:
         func(data)
-    except (TypeError, KeyError):
+    except (TypeError, KeyError) as e:
         print(f"加载牌谱{repr(external_id)}失败：数据类型错误", file=sys.stderr)
+        print(e)
