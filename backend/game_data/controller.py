@@ -34,7 +34,7 @@ def tenhou_parse_timestamp(obj):
     try:
         return datetime.strptime(obj["title"][1], r"%m/%d/%Y, %I:%M:%S %p")
     except ValueError:
-        return datetime.strptime(obj["title"][1], r"%Y/%m/%d, %I:%M:%S %p")
+        return datetime.strptime(obj["title"][1], r"%Y/%m/%d %H:%M:%S")
 
 
 @dataclass
@@ -150,8 +150,9 @@ try:
             game_json_objs.append(
                 (timestamp, external_id, game_controller.load_from_tenhou_json, data)
             )
-        except (json.JSONDecodeError, KeyError, TypeError, ValueError):
+        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
             print(f"加载牌谱：无法读取 {path}", file=sys.stderr)
+            print(e)
             continue
 except FileNotFoundError:
     print(f"无牌谱目录 {_TENHOU_PATH}", file=sys.stderr)
