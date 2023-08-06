@@ -18,7 +18,13 @@ const List<String> danNames = [
 Widget buildDan(BuildContext context, int dan) => Text(
       '${danNames[dan]}段',
       style: Theme.of(context).textTheme.labelSmall,
-    ).invertWithColor(Colors.grey.shade300, foreground: Colors.black);
+    )
+        .invertWithColor(
+          Colors.grey.shade300,
+          radius: 4,
+          foreground: Colors.black,
+        )
+        .padding(top: 1.5);
 
 /// 风的名字
 const List<String> windNames = ["东", "南", "西", "北"];
@@ -39,6 +45,7 @@ Widget buildSeat(BuildContext context, int seat, {bool highlight = false}) {
   }
 }
 
+/// 绘制玩家名+段位标记
 Widget buildPlayerName(BuildContext context, String name, int? dan,
     [bool autoBreak = true]) {
   final nameWidget = Text(
@@ -53,14 +60,14 @@ Widget buildPlayerName(BuildContext context, String name, int? dan,
   } else if (autoBreak) {
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 8,
+      spacing: 2,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [nameWidget, buildDan(context, dan)],
     );
   } else {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: [nameWidget.padding(right: 8), buildDan(context, dan)],
+      children: [nameWidget.padding(right: 2), buildDan(context, dan)],
     );
   }
 }
@@ -70,7 +77,7 @@ extension InvertedText on Text {
   Widget invertWithColor(Color color,
           {Color foreground = Colors.white, double radius = 10}) =>
       textColor(foreground)
-          .padding(horizontal: 4)
+          .padding(horizontal: radius / 2)
           .limitedBox()
           .backgroundColor(color)
           .clipRRect(all: radius);
