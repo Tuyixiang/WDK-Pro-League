@@ -30,7 +30,11 @@ def paipu_parse_timestamp(obj):
 
 def tenhou_parse_timestamp(obj):
     """从天凤牌谱中解析时间戳"""
-    return datetime.strptime(obj["title"][1], r"%m/%d/%Y, %I:%M:%S %p")
+    # 不同保存方式可能采用不同的时间戳格式
+    try:
+        return datetime.strptime(obj["title"][1], r"%m/%d/%Y, %I:%M:%S %p")
+    except ValueError:
+        return datetime.strptime(obj["title"][1], r"%Y/%m/%d, %I:%M:%S %p")
 
 
 @dataclass
