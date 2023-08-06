@@ -205,7 +205,7 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
         ),
       ).constrained(maxWidth: 400);
 
-  /// 绘制结束类型
+  /// 绘制结束类型（如”自摸“”荒牌流局“）
   Widget _buildEnding(BuildContext context) {
     if (widget.ending != "和" && widget.ending != "自摸") {
       return Text(widget.ending, style: Theme.of(context).textTheme.titleMedium)
@@ -218,50 +218,75 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
             foreground: Colors.black);
   }
 
-  /// 绘制和牌大小（如“3番30符”）
-  Widget _buildWinTitle(BuildContext context) {
-    if (widget.ending != "和" && widget.ending != "自摸") {
-      return Row(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildEnding(context),
-          ]);
-    }
+  /// 绘制和牌大小
+  Widget _buildWinDetail(BuildContext context) {
     final han = widget.win!.han;
     final fu = widget.win!.fu;
     final yakuman = widget.win!.yakuman;
     final theme = Theme.of(context);
     final style = theme.textTheme.titleMedium;
-    final Widget winText;
     if (yakuman >= 2) {
-      winText = Text("${numberNames[yakuman - 1]}倍役满", style: style)
+      return Text("${numberNames[yakuman - 1]}倍役满", style: style)
           .bold()
           .invertWithColor(theme.primaryColorLight,
               foreground: theme.primaryColor);
     } else if (yakuman > 0) {
-      winText = Text("役满", style: style).bold().invertWithColor(
+      return Text("役满", style: style).bold().invertWithColor(
           theme.primaryColorLight,
           foreground: theme.primaryColor);
     } else if (han >= 12) {
-      winText = Text("三倍满", style: style).bold().textColor(theme.primaryColor);
+      return Text("三倍满", style: style).bold().textColor(theme.primaryColor);
     } else if (han >= 8) {
-      winText = Text("倍满", style: style).bold().textColor(theme.primaryColor);
+      return Text("倍满", style: style).bold().textColor(theme.primaryColor);
     } else if (han >= 6) {
-      winText = Text("跳满", style: style).bold().textColor(theme.primaryColor);
+      return Text("跳满", style: style).bold().textColor(theme.primaryColor);
     } else if ((han >= 4 && fu >= 30) || (han >= 3 && fu >= 60)) {
-      winText = Text("满贯", style: style).bold();
+      return Text("满贯", style: style).bold();
     } else {
-      winText = Text("$han番$fu符", style: style);
+      return Text("$han番$fu符", style: style);
     }
+  }
+
+  /// 绘制结束标题
+  Widget _buildWinTitle(BuildContext context) {
+    // 对于流局，则只绘制相应的描述
+    if (widget.ending != "和" && widget.ending != "自摸") {
+      return Row(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildEnding(context),
+          ]);
+    }
+
+    // 和牌：绘制类型、大小、玩家信息
+    final player = widget.players[widget.win!.winner];
     return Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          winText,
-          const SizedBox(width: 16),
-          _buildEnding(context),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildEnding(context),
+              const SizedBox(width: 8),
+              _buildWinDetail(context),
+            ],
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              buildPlayerName(context, player.playerName, player.currentDan),
+              const SizedBox(width: 8),
+              buildSeat(
+                context,
+                (widget.win!.winner - widget.dealer) % 4,
+                highlight: (widget.win!.winner == widget.dealer),
+              ),
+            ],
+          ),
         ]);
   }
 

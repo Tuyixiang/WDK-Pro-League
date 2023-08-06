@@ -58,6 +58,7 @@ class PlayerDatabase(Deserializable):
                 key=lambda player_data: (
                     player_data.current_dan,
                     player_data.current_pt,
+                    player_data.r_value,
                 ),
                 reverse=True,
             )
