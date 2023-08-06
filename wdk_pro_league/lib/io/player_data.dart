@@ -9,7 +9,7 @@ class PlayerData {
   final String playerName;
 
   /// 玩家外部 ID
-  final int externalId;
+  final List<int> externalIds;
 
   /// 当前段位
   final int currentDan;
@@ -41,7 +41,7 @@ class PlayerData {
   PlayerData(Map<String, dynamic> data)
       : playerId = data["player_id"],
         playerName = data["player_name"],
-        externalId = data["external_id"],
+        externalIds = data["external_ids"].cast<int>(),
         currentDan = data["current_dan"],
         highestDan = data["highest_dan"],
         currentPt = data["current_pt"],

@@ -51,6 +51,24 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
     }
   }
 
+  /// 根据不同的名次使用不同颜色
+  Color _colorFromOrder(int order, {int point = 10}) {
+    final scheme = Theme.of(context).colorScheme;
+    if (point < 0 && order == 3) {
+      return scheme.error;
+    } else if (order == 3) {
+      return Color.alphaBlend(
+          Colors.grey.shade500.withAlpha(192), scheme.error);
+    } else if (order == 2) {
+      return Colors.grey.shade500;
+    } else if (order == 1) {
+      return Color.alphaBlend(
+          Colors.grey.shade500.withAlpha(168), scheme.primary);
+    } else {
+      return scheme.primary;
+    }
+  }
+
   /// 将 +- 分数转换为字符串
   String _formatDelta(num value) {
     final v = value.toInt();
@@ -108,14 +126,10 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
     return Container(
       decoration: isHighlightedPlayer
           ? BoxDecoration(
-              gradient: RadialGradient(
-                stops: const [0, 0.5, 0.75],
-                colors: [
-                  pointColor.withAlpha(64),
-                  pointColor.withAlpha(32),
-                  pointColor.withAlpha(0),
-                ],
-              ),
+              color: _colorFromOrder(
+                game.orderedPlayerIds.indexOf(player.playerId),
+                point: game.playerPoints[seat],
+              ).withAlpha(48),
             )
           : null,
       child: Column(
@@ -125,7 +139,7 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
           pointDisplay,
           resultDisplay,
         ],
-      ),
+      ).padding(all: 4),
     ).expanded();
   }
 
@@ -163,6 +177,10 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
           ),
         ],
       );
+
+  /// 卡片内侧不添加 padding
+  @override
+  Widget addPadding(Widget content) => content;
 
   /// 点击查看游戏详情
   @override

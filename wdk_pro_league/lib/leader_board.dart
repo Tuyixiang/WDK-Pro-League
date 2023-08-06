@@ -4,6 +4,7 @@ import 'package:styled_widget/styled_widget.dart';
 import 'package:wdk_pro_league/elements/card.dart';
 import 'package:wdk_pro_league/elements/page.dart';
 import 'package:wdk_pro_league/game_history.dart';
+import 'package:wdk_pro_league/player_view.dart';
 
 import 'elements/basic.dart';
 import 'elements/loading.dart';
@@ -145,5 +146,14 @@ class _PlayerCardState extends CardState<PlayerCard> {
             description,
           ]),
     ]);
+  }
+
+  /// 点击时展开玩家详情页面
+  @override
+  void onTap(BuildContext context) {
+    Future.delayed(const Duration()).then((a) {
+      Navigator.of(context)
+          .push(loadPage(PlayerViewPage(playerId: widget.info.playerId)));
+    });
   }
 }

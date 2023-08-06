@@ -15,10 +15,14 @@ abstract class CardState<T extends StatefulWidget> extends State<T> {
     return 800;
   }
 
+  /// 卡片内侧的 padding
+  Widget addPadding(Widget content) {
+    return content.padding(horizontal: 12, vertical: 8);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final card = Styled.widget(
-            child: buildChild(context).padding(horizontal: 16, vertical: 8))
+    final card = Styled.widget(child: addPadding(buildChild(context)))
         .alignment(Alignment.center)
         .ripple()
         .backgroundColor(Colors.white, animate: true)
