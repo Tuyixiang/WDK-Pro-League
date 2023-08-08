@@ -240,7 +240,7 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
       return Text("倍满", style: style).bold().textColor(theme.primaryColor);
     } else if (han >= 6) {
       return Text("跳满", style: style).bold().textColor(theme.primaryColor);
-    } else if ((han >= 4 && fu >= 30) || (han >= 3 && fu >= 60)) {
+    } else if ((han >= 4 && fu >= 40) || (han >= 3 && fu >= 70)) {
       return Text("满贯", style: style).bold();
     } else {
       return Text("$han番$fu符", style: style);

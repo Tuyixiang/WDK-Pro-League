@@ -20,7 +20,7 @@ Widget buildDan(BuildContext context, int dan) => Text(
       style: Theme.of(context).textTheme.labelSmall,
     )
         .invertWithColor(
-          Colors.grey.shade300,
+          Colors.grey.withAlpha(96),
           radius: 4,
           foreground: Colors.black,
         )
