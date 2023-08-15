@@ -26,11 +26,20 @@ class Deserializable:
     def deserialize_object(ty: type, obj: Any) -> Any:
         """读取对象并转化为指定的类型"""
         if get_origin(ty) is Union:
+            # 应为 Optional
+            assert get_args(ty)[1] is type(None)
+            if obj is None:
+                return None
             ty = get_args(ty)[0]
             return Deserializable.deserialize_object(ty, obj)
         if get_origin(ty) is list:
             ty = get_args(ty)[0]
             return [Deserializable.deserialize_object(ty, item) for item in obj]
+        if get_origin(ty) is tuple:
+            return [
+                Deserializable.deserialize_object(t, item)
+                for (t, item) in zip(get_origin(ty), obj)
+            ]
         if get_origin(ty) is dict:
             key_type, value_type = get_args(ty)
             return {
@@ -74,7 +83,7 @@ class Deserializable:
         """递归地转化为可以 JSON 序列化的字典对象"""
         if isinstance(obj, Deserializable):
             return obj.serialize(exclude_non_repr=exclude_non_repr)
-        if isinstance(obj, list):
+        if isinstance(obj, (list, tuple)):
             return [
                 Deserializable.serialize_object(item, exclude_non_repr=exclude_non_repr)
                 for item in obj

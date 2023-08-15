@@ -4,37 +4,45 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime
 from pprint import pprint
+from typing import Callable
 
 from .io import Deserializable
 from .player import PlayerDatabase, player_database
-from .game import GameData, GameDatabase, game_database, TenhouRound
-
-_PAIPU_PATH = "data/paipus"
-_TENHOU_PATH = "data/tenhou"
+from .game import *
 
 
-def paipu_parse_id(obj):
+def paipu_parse_id(obj) -> str:
     """从雀魂牌谱中解析外部 ID"""
     return obj["gamedata"]["uuid"]
 
 
-def tenhou_parse_id(obj):
+def tenhou_parse_id(obj) -> str:
     """从天凤牌谱中解析外部 ID"""
     return obj["ref"]
 
 
-def paipu_parse_timestamp(obj):
+def offline_parse_id(obj) -> str:
+    """从线下 JSON 中生成游戏 ID"""
+    return f"{obj['game_date']} {':'.join(obj['player_ids'])}"
+
+
+def paipu_parse_timestamp(obj) -> datetime:
     """从雀魂牌谱中解析时间戳"""
     return datetime.fromtimestamp(obj["gamedata"]["starttime"])
 
 
-def tenhou_parse_timestamp(obj):
+def tenhou_parse_timestamp(obj) -> datetime:
     """从天凤牌谱中解析时间戳"""
     # 不同保存方式可能采用不同的时间戳格式
     try:
         return datetime.strptime(obj["title"][1], r"%m/%d/%Y, %I:%M:%S %p")
     except ValueError:
         return datetime.strptime(obj["title"][1], r"%Y/%m/%d %H:%M:%S")
+
+
+def offline_parse_timestamp(obj) -> datetime:
+    """从线下 JSON 中解析时间戳"""
+    return datetime.fromisoformat(obj["game_date"])
 
 
 @dataclass
@@ -52,7 +60,9 @@ class GameDataController(Deserializable):
 
         self.game_database.add_game(game)
 
-        for player, pt, r in zip(game.players, game.pt_delta, game.r_delta):
+        for player, pt, r in zip(
+            game.players, game.adjusted_pt_delta, game.adjusted_r_delta
+        ):
             self.player_database.get_player(player.player_id).add_game(game.preview)
 
     def load_from_paipu_json(self, game_obj: dict):
@@ -86,6 +96,7 @@ class GameDataController(Deserializable):
             ],
             game_date=paipu_parse_timestamp(game_obj),
             external_id=external_game_id,
+            game_type=MAJSOUL_GAME,
         )
 
         # 保存游戏
@@ -120,6 +131,39 @@ class GameDataController(Deserializable):
             rounds=[TenhouRound.from_json(r) for r in game_obj["log"]],
             game_date=tenhou_parse_timestamp(data),
             external_id=external_game_id,
+            game_type=MAJSOUL_GAME,
+        )
+
+        # 保存游戏
+        self.apply_game(game)
+
+    def load_from_offline_json(self, game_obj: dict):
+        """从 JSON 对象读取并保存线下游戏"""
+        # 检查是否已经存在相同的游戏
+        external_game_id = offline_parse_id(game_obj)
+        if external_game_id in self.game_database.external_id_set:
+            return
+
+        # 读取玩家列表，如果不存在则创建新雀魂玩家
+        players = []
+        for player_id in game_obj["player_ids"]:
+            if player_id in self.player_database.all_player_data:
+                players.append(self.player_database.get_player(player_id))
+            else:
+                players.append(
+                    self.player_database.create_player(
+                        player_name=f"线下玩家-{player_id}",
+                        player_id=player_id,
+                    )
+                )
+
+        # 创建游戏
+        game = GameData(
+            players=[p.snapshot for p in players],
+            player_points=game_obj["player_points"],
+            game_date=offline_parse_timestamp(game_obj),
+            external_id=external_game_id,
+            game_type=GameType.Enum.get(game_obj["game_type"], OFFLINE_GAME),
         )
 
         # 保存游戏
@@ -132,53 +176,65 @@ game_controller = GameDataController(game_database, player_database)
 # 先加载文件并记录游戏时间，然后按照时间进行排序再处理
 game_json_objs = []
 new_game_ids = set()
+
+
+def load_from_directory(
+    directory: str,
+    loader: Callable[[dict], None],
+    timestamp_parser: Callable[[dict], datetime],
+    id_parser: Callable[[dict], str],
+):
+    try:
+        for file in os.listdir(directory):
+            path = os.path.join(directory, file)
+            try:
+                data = json.load(open(path))
+                timestamp = timestamp_parser(data)
+                external_id = id_parser(data)
+                # 去重
+                if (
+                    external_id in new_game_ids
+                    or external_id in game_database.external_id_set
+                ):
+                    continue
+                new_game_ids.add(external_id)
+                game_json_objs.append(
+                    (
+                        timestamp,
+                        external_id,
+                        loader,
+                        data,
+                    )
+                )
+            except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
+                print(f"加载牌谱：无法读取 {path}", file=sys.stderr)
+                print(e)
+                continue
+    except FileNotFoundError:
+        print(f"无牌谱目录 {directory}", file=sys.stderr)
+
+
 # 读取天凤牌谱
-try:
-    for file in os.listdir(_TENHOU_PATH):
-        path = os.path.join(_TENHOU_PATH, file)
-        try:
-            data = json.load(open(path))
-            timestamp = tenhou_parse_timestamp(data)
-            external_id = tenhou_parse_id(data)
-            # 去重
-            if (
-                external_id in new_game_ids
-                or external_id in game_database.external_id_set
-            ):
-                continue
-            new_game_ids.add(external_id)
-            game_json_objs.append(
-                (timestamp, external_id, game_controller.load_from_tenhou_json, data)
-            )
-        except (json.JSONDecodeError, KeyError, TypeError, ValueError) as e:
-            print(f"加载牌谱：无法读取 {path}", file=sys.stderr)
-            print(e)
-            continue
-except FileNotFoundError:
-    print(f"无牌谱目录 {_TENHOU_PATH}", file=sys.stderr)
+load_from_directory(
+    "data/tenhou",
+    game_controller.load_from_tenhou_json,
+    tenhou_parse_timestamp,
+    tenhou_parse_id,
+)
 # 读取雀魂牌谱
-try:
-    for file in os.listdir(_PAIPU_PATH):
-        path = os.path.join(_PAIPU_PATH, file)
-        try:
-            data = json.load(open(path))
-            timestamp = paipu_parse_timestamp(data)
-            external_id = paipu_parse_id(data)
-            # 去重
-            if (
-                external_id in new_game_ids
-                or external_id in game_database.external_id_set
-            ):
-                continue
-            new_game_ids.add(external_id)
-            game_json_objs.append(
-                (timestamp, external_id, game_controller.load_from_paipu_json, data)
-            )
-        except (json.JSONDecodeError, KeyError, TypeError):
-            print(f"加载牌谱：无法读取 {path}", file=sys.stderr)
-            continue
-except FileNotFoundError:
-    print(f"无牌谱目录 {_PAIPU_PATH}", file=sys.stderr)
+load_from_directory(
+    "data/paipu",
+    game_controller.load_from_paipu_json,
+    paipu_parse_timestamp,
+    paipu_parse_id,
+)
+# 读取线下牌谱
+load_from_directory(
+    "data/offline",
+    game_controller.load_from_offline_json,
+    offline_parse_timestamp,
+    offline_parse_id,
+)
 # 排序并处理
 for _, external_id, func, data in sorted(game_json_objs, key=lambda x: x[0]):
     try:

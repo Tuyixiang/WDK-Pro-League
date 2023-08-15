@@ -85,6 +85,8 @@ class RoundEnding(StrEnum):
             return RoundEnding.Suukaikan
         elif state in ["三家和", "Sanchahou"]:
             return RoundEnding.Sanchahou
+        elif state in ["流し満貫", "Nagashi Mangan"]:
+            return RoundEnding.NagashiMangan
         else:
             return RoundEnding.NULL
 
@@ -113,6 +115,9 @@ class RoundWin(Deserializable):
 
     yaku: List[Tuple[str, int]] = field(default_factory=list)
     """役种（名称及番数）"""
+
+    hand: Optional[Tuple[List[str], List[List[str]], str]] = field(default=None)
+    """赢家的牌（暗牌、名牌、和牌）"""
 
     def __post_init__(self):
         # 累计役满计入役满倍数

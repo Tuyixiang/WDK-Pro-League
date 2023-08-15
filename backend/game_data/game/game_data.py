@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import dataclasses
 import sys
+from collections import namedtuple
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Tuple, TextIO
+from typing import List, Optional, Tuple, TextIO, Dict, ClassVar
 import uuid
 
 from ..game_preview import GamePreview
@@ -28,6 +29,44 @@ R_DELTA = [30, 10, -10, -30]
 """不同顺位的 R 值得分"""
 
 
+def round_down(value: float) -> int:
+    """向下取整，忽略浮点的微小差异"""
+    return int(value + 1e-5)
+
+
+@dataclass
+class GameType(Deserializable):
+    """游戏类型"""
+
+    Enum: ClassVar[Dict[str, GameType]] = {}
+    """利用 name 反向查找对应的对象"""
+
+    name: str
+    """游戏类型显示名称"""
+
+    pt_multiplier: float = field(default=1)
+    """点数的乘数系数"""
+
+    r_multiplier: float = field(default=1)
+    """r 点的乘数系数"""
+
+    uma: Optional[List[int]] = field(default=None)
+    """马点计算方式，例如 [10000, 20000, 30000, 40000]（如果不按马点计算则为 None）"""
+
+    def __post_init__(self):
+        """将创建过的对象自动保存到 Enum 中"""
+        if self.name not in GameType.Enum:
+            GameType.Enum[self.name] = self
+
+
+MAJSOUL_GAME = GameType(name="雀魂牌局")
+OFFLINE_GAME = GameType(name="线下牌局", pt_multiplier=4 / 3)
+MAJSOUL_LEAGUE_GAME = GameType(name="雀魂联赛牌局", uma=[10000, 20000, 30000, 40000])
+OFFLINE_LEAGUE_GAME = GameType(
+    name="线下联赛牌局", pt_multiplier=4 / 3, uma=[10000, 20000, 30000, 40000]
+)
+
+
 @dataclass
 class GameData(Deserializable):
     """每盘游戏所有保存的数据"""
@@ -37,6 +76,9 @@ class GameData(Deserializable):
 
     player_points: List[int]
     """每个玩家获得的点数（当盘游戏的点数，非玩家累计点数）"""
+
+    game_type: GameType
+    """游戏的类型"""
 
     rounds: List[BaseRound] = field(default_factory=list)
     """每一局的结果，可能为空（只计点数）"""
@@ -58,9 +100,6 @@ class GameData(Deserializable):
 
     r_delta: List[float] = field(init=False, repr=False)
     """玩家获得的 R，缓存变量"""
-
-    game_type: str = field(init=False, repr=False)
-    """游戏的类型（雀魂或手动录入）"""
 
     @property
     def sorted_player_points(self) -> List[Tuple[PlayerSnapshot, int]]:
@@ -84,16 +123,21 @@ class GameData(Deserializable):
         """进行游戏的日期，或上传记录的日期"""
         return self.game_date or self.upload_time
 
+    @property
+    def adjusted_pt_delta(self) -> List[int]:
+        """乘以系数之后的点数"""
+        return [round_down(pt * self.game_type.pt_multiplier) for pt in self.pt_delta]
+
+    @property
+    def adjusted_r_delta(self) -> List[float]:
+        """乘以系数之后的 r 点数"""
+        return [round_down(r * self.game_type.pt_multiplier) for r in self.r_delta]
+
     def __post_init__(self):
         self.update()
 
     def update(self):
         """计算分数和 R"""
-        if self.external_id:
-            self.game_type = "雀魂牌局"
-        else:
-            self.game_type = "手动录入牌局"
-
         self.pt_delta = [0, 0, 0, 0]
         self.r_delta = [0, 0, 0, 0]
 
@@ -141,7 +185,7 @@ class GameData(Deserializable):
 
     def print_log(self, out: TextIO = sys.stdout):
         print(
-            f"Game {self.game_id}\n",
+            f"{self.game_type.name} {self.game_id}\n",
             "\n".join(
                 f"{self.players[i]}: {self.player_points[i]} ({self.pt_delta[i]:+}pt {self.r_delta[i]:+.2f}R)"
                 for i in range(4)
