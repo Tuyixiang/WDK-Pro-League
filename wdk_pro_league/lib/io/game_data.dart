@@ -60,7 +60,7 @@ class GameData {
           data["players"].map((v) => PlayerPreview(v)),
         ),
         playerPoints: data["player_points"].cast<int>(),
-        rounds: data["rounds"]
+        rounds: (data["rounds"] ?? [])
             .map<RoundData>((e) => RoundData.fromJson(e))
             .toList(),
         gameDate: callIfNotNull(DateTime.parse, data["game_date"]),
@@ -69,7 +69,7 @@ class GameData {
         uploadTime: DateTime.parse(data["upload_time"]),
         ptDelta: data["pt_delta"].cast<int>(),
         rDelta: data["r_delta"].cast<double>(),
-        gameType: data["game_type"],
+        gameType: data["game_type"]["name"],
       );
 
   GamePreview get preview => GamePreview(
@@ -135,6 +135,6 @@ class GamePreview {
         gameId: data["game_id"],
         ptDelta: data["pt_delta"].cast<int>(),
         rDelta: data["r_delta"].cast<double>(),
-        gameType: data["game_type"],
+        gameType: data["game_type"]["name"],
       );
 }
