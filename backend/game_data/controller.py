@@ -60,9 +60,7 @@ class GameDataController(Deserializable):
 
         self.game_database.add_game(game)
 
-        for player, pt, r in zip(
-            game.players, game.adjusted_pt_delta, game.adjusted_r_delta
-        ):
+        for player in game.players:
             self.player_database.get_player(player.player_id).add_game(game.preview)
 
     def load_from_paipu_json(self, game_obj: dict):

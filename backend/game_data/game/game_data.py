@@ -29,11 +29,6 @@ R_DELTA = [30, 10, -10, -30]
 """不同顺位的 R 值得分"""
 
 
-def round_down(value: float) -> int:
-    """向下取整，忽略浮点的微小差异"""
-    return int(value + 1e-5)
-
-
 @dataclass
 class GameType(Deserializable):
     """游戏类型"""
@@ -123,16 +118,6 @@ class GameData(Deserializable):
         """进行游戏的日期，或上传记录的日期"""
         return self.game_date or self.upload_time
 
-    @property
-    def adjusted_pt_delta(self) -> List[int]:
-        """乘以系数之后的点数"""
-        return [round_down(pt * self.game_type.pt_multiplier) for pt in self.pt_delta]
-
-    @property
-    def adjusted_r_delta(self) -> List[float]:
-        """乘以系数之后的 r 点数"""
-        return [round_down(r * self.game_type.pt_multiplier) for r in self.r_delta]
-
     def __post_init__(self):
         self.update()
 
@@ -164,8 +149,8 @@ class GameData(Deserializable):
 
             # 低于 5 段玩家每和出一倍役满 +90pt
             if player.current_dan < 5:
-                for round in self.rounds:
-                    for win in round.wins:
+                for round_ in self.rounds:
+                    for win in round_.wins:
                         if win.winner == seat and win.yakuman > 0:
                             pt += 90 * win.yakuman
 
@@ -180,8 +165,8 @@ class GameData(Deserializable):
             r += (average_r - player.r_value) / 40
             r *= 1 - player.game_count / 500
 
-            self.pt_delta[seat] = pt
-            self.r_delta[seat] = r
+            self.pt_delta[seat] = round(pt * self.game_type.pt_multiplier)
+            self.r_delta[seat] = round(r * self.game_type.r_multiplier)
 
     def print_log(self, out: TextIO = sys.stdout):
         print(
