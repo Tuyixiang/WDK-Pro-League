@@ -1,3 +1,4 @@
-from .access import access_blueprint
-from .query import query_blueprint
+from .access import *
+from .query import *
+from .post import *
 from .error import *

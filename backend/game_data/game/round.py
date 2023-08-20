@@ -7,7 +7,7 @@ from typing import List, Optional, Tuple
 
 from .names import YAKU_NAMES
 from game_data.io import Deserializable
-
+from .tenhou import RoundFullInfo
 
 NAGASHI_MANGAN_AS_DRAW = True
 """根据天凤/雀魂规则，荒牌流局视为流局（亲家听牌则连庄）"""
@@ -117,7 +117,7 @@ class RoundWin(Deserializable):
     """役种（名称及番数）"""
 
     hand: Optional[Tuple[List[str], List[List[str]], str]] = field(default=None)
-    """赢家的牌（暗牌、名牌、和牌）"""
+    """赢家的牌（暗牌、明牌、和牌）"""
 
     def __post_init__(self):
         # 累计役满计入役满倍数
@@ -163,6 +163,9 @@ class BaseRound(Deserializable):
     honba: int
     """本场数，从 0 开始计"""
 
+    kyoutaku: int
+    """供托数，每个立直棒计作 1"""
+
     initial_points: List[int] = field(default_factory=lambda: [25000] * 4)
     """一局开始时各家的点数"""
 
@@ -170,6 +173,11 @@ class BaseRound(Deserializable):
     """本局游戏各家的点数变化（如果有多个荣和，则分别记录）
     
     九种九牌等中止牌局，将记录 [[0, 0, 0, 0]]。故任何情况下至少有一项"""
+
+    final_hands: Optional[
+        List[Tuple[List[str], List[List[str]], Optional[str]]]
+    ] = field(default=None)
+    """结束时每家的牌"""
 
 
 @dataclass
@@ -179,12 +187,18 @@ class TenhouRound(BaseRound):
     wins: List[RoundWin] = field(default_factory=list)
     """和牌情况（可能包括 0-3 个），流局满贯时应为 4 番 40 符"""
 
+    riichi_status: Optional[List[bool]] = field(default=None)
+    """立直状态"""
+
+    full_info: Optional[RoundFullInfo] = field(default=None)
+
     @classmethod
     def from_json(cls, obj: list) -> TenhouRound:
         """从 JSON 数据中读取"""
         wind = Wind(obj[0][0] // 4)
         dealer = obj[0][0] % 4
         honba = obj[0][1]
+        kyoutaku = obj[0][2]
         initial_points = obj[1]
 
         state = obj[-1][0]
@@ -193,6 +207,7 @@ class TenhouRound(BaseRound):
 
         ending = RoundEnding.parse_tenhou(state)
         if ending == RoundEnding.Ron:
+            # 为每个和牌提取番数和符数
             for i in range(1, len(obj[-1]), 2):
                 result_points.append(obj[-1][i])
                 winner, loser, _, win_description, *yaku_list = obj[-1][i + 1]
@@ -226,14 +241,23 @@ class TenhouRound(BaseRound):
             result_points.append([0, 0, 0, 0])
         else:
             print(f"未实现的结局：{state}")
+
+        full_info = RoundFullInfo.from_json(obj)
         return TenhouRound(
             ending=ending,
             prevailing_wind=wind,
             dealer=dealer,
             honba=honba,
+            kyoutaku=kyoutaku,
             initial_points=initial_points,
             result_points=result_points,
+            final_hands=[
+                (*player.status, full_info.agari)
+                for player in full_info.player_final_status
+            ],
+            riichi_status=full_info.riichi_status,
             wins=wins,
+            full_info=full_info,
         )
 
 

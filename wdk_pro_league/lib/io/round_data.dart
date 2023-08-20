@@ -1,5 +1,7 @@
 import 'package:wdk_pro_league/io/helper.dart';
 
+typedef WinningHand = (List<String>, List<List<String>>, String);
+
 /// 一局游戏的情况
 class RoundData {
   /// 场凤
@@ -7,6 +9,9 @@ class RoundData {
 
   /// 本场数
   final int honba;
+
+  /// 供托数
+  final int kyoutaku;
 
   /// 庄家
   final int dealer;
@@ -20,31 +25,47 @@ class RoundData {
   /// 分数增减（至少一项）
   final List<List<int>> resultPoints;
 
+  /// 立直状态
+  final List<bool> riichiStatus;
+
   /// 和牌情况
   final List<Win> wins;
+
+  final List<WinningHand>? finalHands;
 
   RoundData({
     required this.wind,
     required this.honba,
+    required this.kyoutaku,
     required this.dealer,
     required this.ending,
     required this.initialPoints,
     required this.resultPoints,
+    required this.riichiStatus,
     required this.wins,
+    this.finalHands,
   });
 
   /// 加载 JSON 对
   static RoundData fromJson(Map<String, dynamic> obj) => RoundData(
-        wind: obj["prevailing_wind"],
-        honba: obj["honba"],
-        dealer: obj["dealer"],
-        ending: obj["ending"],
-        initialPoints: obj["initial_points"].cast<int>(),
-        resultPoints: obj["result_points"]
-            .map<List<int>>((e) => List<int>.from(e))
-            .toList(),
-        wins: obj["wins"].map<Win>((e) => Win.fromJson(e)).toList(),
-      );
+      wind: obj["prevailing_wind"],
+      honba: obj["honba"],
+      kyoutaku: obj["kyoutaku"],
+      dealer: obj["dealer"],
+      ending: obj["ending"],
+      initialPoints: obj["initial_points"].cast<int>(),
+      resultPoints: obj["result_points"]
+          .map<List<int>>((e) => List<int>.from(e))
+          .toList(),
+      riichiStatus: obj["riichi_status"].cast<bool>(),
+      wins: obj["wins"].map<Win>((e) => Win.fromJson(e)).toList(),
+      finalHands: obj["final_hands"]
+          .map<WinningHand>((e) => (
+                e[0].cast<String>(),
+                e[1].map<List<String>>((e) => List<String>.from(e)).toList(),
+                e[2],
+              ) as WinningHand)
+          .toList());
 }
 
 /// 一个和牌的情况

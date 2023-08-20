@@ -11,3 +11,7 @@ def invalid_id_handler(e: InvalidIdException):
 
 def no_key_handler():
     return {"error": "No valid secret key"}, 401
+
+
+def bad_data_handler():
+    return {"error": "Invalid data sent"}, 400

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:styled_widget/styled_widget.dart';
 import 'package:wdk_pro_league/elements/basic.dart';
 import 'package:wdk_pro_league/elements/card.dart';
+import 'package:wdk_pro_league/elements/tiles.dart';
 import 'package:wdk_pro_league/io/game_data.dart';
 
 import '../io/player_data.dart';
@@ -35,7 +36,8 @@ class RoundResultView extends StatelessWidget {
     final roundInfo =
         "${windNames[roundData.wind]}${numberNames[roundData.dealer]}局"
         "  "
-        "${roundData.honba}本场";
+        "${roundData.honba}本场"
+        "${roundData.kyoutaku > 0 ? "  ${roundData.kyoutaku}供托" : ""}";
     final hint = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -48,10 +50,12 @@ class RoundResultView extends StatelessWidget {
                 players: gameData.players,
                 initialPoints: roundData.initialPoints,
                 resultPoints: roundData.resultPoints[index],
+                riichiStatus: roundData.riichiStatus,
                 dealer: roundData.dealer,
                 ending: roundData.ending,
                 win: win,
                 hint: index == 0 ? hint : null,
+                winningHand: roundData.finalHands?[win.winner],
               ))
           .toList()
           .toColumn();
@@ -60,6 +64,7 @@ class RoundResultView extends StatelessWidget {
         players: gameData.players,
         initialPoints: roundData.initialPoints,
         resultPoints: roundData.resultPoints[0],
+        riichiStatus: roundData.riichiStatus,
         dealer: roundData.dealer,
         ending: roundData.ending,
         hint: hint,
@@ -72,9 +77,11 @@ class RoundResultCard extends StatefulWidget {
   final List<PlayerPreview> players;
   final List<int> initialPoints;
   final List<int> resultPoints;
+  final List<bool> riichiStatus;
   final int dealer;
   final String ending;
   final Win? win;
+  final WinningHand? winningHand;
 
   /// 如果是第一个卡牌，上方的提示文字
   final Widget? hint;
@@ -84,10 +91,12 @@ class RoundResultCard extends StatefulWidget {
     required this.players,
     required this.initialPoints,
     required this.resultPoints,
+    required this.riichiStatus,
     required this.dealer,
     required this.ending,
     this.win,
     this.hint,
+    this.winningHand,
   });
 
   @override
@@ -98,7 +107,7 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
   @override
   Widget buildChild(BuildContext context) =>
       LayoutBuilder(builder: (context, constraints) {
-        if (constraints.maxWidth < 560) {
+        if (constraints.maxWidth < 720) {
           return Column(
             children: [
               _buildPlayerList(context),
@@ -195,10 +204,21 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
                 widget.initialPoints[seat].toString(),
                 style: Theme.of(context).textTheme.bodyLarge,
               ).center(),
+              // 立直状态
+              widget.riichiStatus[seat]
+                  ? Text("立", style: Theme.of(context).textTheme.labelSmall)
+                      .invertWithColor(
+                        Colors.grey.withAlpha(96),
+                        radius: 4,
+                        foreground: Colors.black,
+                      )
+                      .center()
+                  : const SizedBox.shrink(),
               // 得分
               _buildPointDelta(
                 context,
-                widget.resultPoints[seat],
+                widget.resultPoints[seat] -
+                    (widget.riichiStatus[seat] ? 1000 : 0),
               ).center(),
             ],
           ),
@@ -247,6 +267,54 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
     }
   }
 
+  /// 绘制和牌得点
+  Widget _buildWinPoints(BuildContext context) {
+    final han = widget.win!.han;
+    final fu = widget.win!.fu;
+    final yakuman = widget.win!.yakuman;
+    final theme = Theme.of(context);
+    final style = theme.textTheme.titleMedium;
+    final isDealer = widget.dealer == widget.win!.winner;
+    if (yakuman > 0) {
+      return Text(
+        "${yakuman * (isDealer ? 48000 : 32000)}",
+        style: style,
+      ).bold().invertWithColor(theme.primaryColorLight,
+          foreground: theme.primaryColor);
+    } else if (han >= 12) {
+      return Text("${isDealer ? 36000 : 24000}", style: style)
+          .bold()
+          .textColor(theme.primaryColor);
+    } else if (han >= 8) {
+      return Text("${isDealer ? 24000 : 16000}", style: style)
+          .bold()
+          .textColor(theme.primaryColor);
+    } else if (han >= 6) {
+      return Text("${isDealer ? 18000 : 12000}", style: style)
+          .bold()
+          .textColor(theme.primaryColor);
+    } else if ((han >= 4 && fu >= 40) || (han >= 3 && fu >= 70)) {
+      return Text("${isDealer ? 12000 : 8000}", style: style).bold();
+    } else {
+      final base = fu * (4 << han);
+      final int point;
+      if (widget.ending == "自摸") {
+        if (isDealer) {
+          point = 300 * ((base * 2 + 99) ~/ 100);
+        } else {
+          point = 200 * ((base + 99) ~/ 100) + 100 * ((base * 2 + 99) ~/ 100);
+        }
+      } else {
+        if (isDealer) {
+          point = 100 * ((base * 6 + 99) ~/ 100);
+        } else {
+          point = 100 * ((base * 4 + 99) ~/ 100);
+        }
+      }
+      return Text("$point", style: style);
+    }
+  }
+
   /// 绘制结束标题
   Widget _buildWinTitle(BuildContext context) {
     // 对于流局，则只绘制相应的描述
@@ -273,6 +341,8 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
               _buildEnding(context),
               const SizedBox(width: 8),
               _buildWinDetail(context),
+              const SizedBox(width: 8),
+              _buildWinPoints(context),
             ],
           ),
           Row(
@@ -290,6 +360,35 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
         ]);
   }
 
+  /// 绘制一些麻将牌
+  Widget _buildTiles(BuildContext context, List<String> tiles) => Text(
+        tiles.map((e) => tileNames[e]).join(),
+        style: Theme.of(context)
+            .textTheme
+            .headlineLarge!
+            .copyWith(fontFamily: "Mahjong", height: 0.7),
+      );
+
+  /// 绘制和牌牌型
+  Widget _buildWinHand(BuildContext context) {
+    if (widget.winningHand == null ||
+        (widget.ending != "和" && widget.ending != "自摸")) {
+      return const SizedBox.shrink();
+    }
+    final (hand, melds, agari) = widget.winningHand!;
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 4,
+      children: ([hand] +
+              melds +
+              [
+                [agari]
+              ])
+          .map((e) => _buildTiles(context, e))
+          .toList(),
+    ).padding(bottom: 8);
+  }
+
   /// 绘制役种
   Widget _buildYaku(BuildContext context, String name, int han) {
     final style = Theme.of(context).textTheme.bodySmall;
@@ -303,7 +402,7 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
         Text(han.toString(), style: style).bold(),
       ],
     )
-        .padding(horizontal: 6)
+        .padding(horizontal: 4)
         .backgroundColor(Colors.grey.shade300)
         .clipRRect(all: 25)
         .padding(bottom: 8);
@@ -320,14 +419,16 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
     }
     return Column(
       children: [
-        _buildWinTitle(context),
-        const Divider(),
+        _buildWinHand(context),
         Wrap(
           spacing: 16,
           children: widget.win!.yaku
               .map((item) => _buildYaku(context, item.$1, item.$2))
               .toList(),
-        )
+        ),
+        const Divider(height: 0),
+        const SizedBox(height: 6),
+        _buildWinTitle(context),
       ],
     ).expanded();
   }

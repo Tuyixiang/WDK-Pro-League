@@ -2,10 +2,9 @@ import os
 from datetime import timedelta
 from pprint import pprint
 
-from flask import Flask, send_from_directory, request
+from flask import Flask, send_from_directory
 from flask_cors import CORS
 from api import *
-from api.access import get_leader_board
 from data.keys import KEY_HASHED
 from hashlib import sha3_256
 
@@ -21,6 +20,7 @@ if IS_DEVELOPMENT_MODE:
 # 访问路径
 app.register_blueprint(access_blueprint, url_prefix="/api/access")
 app.register_blueprint(query_blueprint, url_prefix="/api/query")
+app.register_blueprint(post_blueprint, url_prefix="/api/post")
 
 # 错误处理
 app.register_error_handler(InvalidIdException, invalid_id_handler)
@@ -64,7 +64,6 @@ def static_serve_index():
 
 
 with app.app_context():
-    pprint(get_leader_board().json)
     print(f"App 已启动")
     if IS_DEVELOPMENT_MODE:
         print(f"（开发模式）")

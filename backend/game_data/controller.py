@@ -235,6 +235,8 @@ load_from_directory(
 )
 # 排序并处理
 for _, external_id, func, data in sorted(game_json_objs, key=lambda x: x[0]):
+    if external_id == "230819-b4bdb485-ca84-4a9e-922d-152be2f18639":
+        pass
     try:
         func(data)
     except (TypeError, KeyError) as e:

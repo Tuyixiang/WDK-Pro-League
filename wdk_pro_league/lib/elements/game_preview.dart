@@ -1,11 +1,12 @@
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:wdk_pro_league/elements/page.dart';
 
 import '../game_view.dart';
 import '../io/game_data.dart';
 import 'basic.dart';
 import 'card.dart';
+import 'page.dart';
 
 class GamePreviewCard extends StatefulWidget {
   final GamePreview data;
@@ -173,7 +174,17 @@ class _GamePreviewCardState extends CardState<GamePreviewCard> {
             widget.data.gameType,
           ),
           Text(
-            widget.data.date.toLocal().toString(),
+            formatDate(widget.data.date, [
+              yyyy,
+              "-",
+              mm,
+              "-",
+              dd,
+              " ",
+              HH,
+              ':',
+              nn,
+            ]),
           ),
         ],
       );
