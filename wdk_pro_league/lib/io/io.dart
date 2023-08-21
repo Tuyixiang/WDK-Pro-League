@@ -120,6 +120,7 @@ class IO {
       // 清除已缓存的数据
       IO.cachedLeaderBoard = null;
       IO.cachedGameHistory = null;
+      IO.cachedPlayerData.clear();
     }
   }
 }

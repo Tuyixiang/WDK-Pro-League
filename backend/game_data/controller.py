@@ -63,6 +63,9 @@ class GameDataController(Deserializable):
         for player in game.players:
             self.player_database.get_player(player.player_id).add_game(game.preview)
 
+        self.game_database.update()
+        self.player_database.update()
+
     def load_from_paipu_json(self, game_obj: dict):
         """从 JSON 对象中读取并保存游戏
 
