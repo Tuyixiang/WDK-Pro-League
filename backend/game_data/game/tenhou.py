@@ -144,7 +144,9 @@ class TenhouRoundPlayerStatus(Deserializable):
     @property
     def status(self) -> Tuple[List[str], List[List[str]]]:
         """返回：暗牌、明牌"""
-        return sorted_tiles(self.hand), self.meld
+        return sorted_tiles(self.hand), [
+            sorted_tiles([m.lower() for m in meld]) for meld in self.meld
+        ]
 
 
 @dataclass
