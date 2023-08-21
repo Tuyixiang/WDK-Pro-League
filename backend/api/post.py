@@ -3,7 +3,7 @@ from pprint import pprint
 
 from flask import Blueprint, request, jsonify
 
-from game_data import game_controller
+from game_data import game_controller, tenhou_parse_id
 from .error import *
 
 post_blueprint = Blueprint("/api/post", __name__)
@@ -25,8 +25,13 @@ def upload_tenhou_game():
     result = {}
     for key, game_json in payload.items():
         try:
-            game = game_controller.load_from_tenhou_json(json.loads(game_json))
-            with open(f"data/tenhou/upload-{game.external_id}.json", "w") as f:
+            game_obj = json.loads(game_json)
+            external_id = tenhou_parse_id(game_obj)
+            if external_id in game_controller.game_database.external_id_map:
+                result[key] = "游戏数据已存在"
+                continue
+            game_controller.load_from_tenhou_json(json.loads(game_json))
+            with open(f"data/tenhou/upload-{external_id}.json", "w") as f:
                 f.write(game_json)
             # game_controller.save()
             result[key] = "上传成功"
