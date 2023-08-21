@@ -101,7 +101,7 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
             return resultStrings;
           });
           // 显示结果
-          if (!mounted) {
+          if (!mounted || resultStrings.isEmpty) {
             return;
           }
           await makePrompt(
@@ -111,10 +111,12 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
                   .map<String>((e) => "${e.key}：${e.value}")
                   .join("\n"));
           // 刷新页面
-          setState(() {
-            initialized = false;
-            data = [];
-          });
+          if (resultStrings.values.any((msg) => msg.contains("成功"))) {
+            setState(() {
+              initialized = false;
+              data = [];
+            });
+          }
         },
       ),
     );
