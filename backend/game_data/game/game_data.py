@@ -131,7 +131,8 @@ class GameData(Deserializable):
         # 被飞的玩家
         out_players = [p for p, point in sorted_player_points if point < 0]
 
-        average_r = sum(p.r_value for p in self.players) / 4
+        # 桌平均R < 1500时，桌平均R视为1500
+        average_r = max(1500, sum(p.r_value for p in self.players) / 4)
 
         for order, (player, player_point) in enumerate(sorted_player_points):
             seat = self.players.index(player)
@@ -163,10 +164,14 @@ class GameData(Deserializable):
             # 计算 R 值
             r = R_DELTA[order]
             r += (average_r - player.r_value) / 40
-            r *= 1 - player.game_count / 500
+
+            # 修正值 = (1 - 局数 * 0.002), 400局以上为0.2
+            r *= max(0.2, 1 - player.game_count / 500)
 
             self.pt_delta[seat] = round(pt * self.game_type.pt_multiplier)
-            self.r_delta[seat] = round(r * self.game_type.r_multiplier)
+
+            # R 值计算结果进位至第三位小数
+            self.r_delta[seat] = round(r * self.game_type.r_multiplier, 3)
 
     def print_log(self, out: TextIO = sys.stdout):
         print(
