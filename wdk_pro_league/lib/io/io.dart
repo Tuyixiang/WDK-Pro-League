@@ -105,4 +105,21 @@ class IO {
   static Future<GameData> getGameData(String gameId) async {
     return cachedGameData[gameId] ??= await _fetchGameData(gameId);
   }
+
+  /// 上传游戏 JSON
+  static Future<Map<String, String>> uploadGames(
+      Map<String, String> payload) async {
+    try {
+      final response =
+          await dio.post("$apiBaseUrl/api/post/tenhou_game", data: payload);
+      return response.data.cast<String, String>();
+    } catch (e) {
+      print(e);
+      return payload.map((key, value) => MapEntry(key, "网络错误"));
+    } finally {
+      // 清除已缓存的数据
+      IO.cachedLeaderBoard = null;
+      IO.cachedGameHistory = null;
+    }
+  }
 }

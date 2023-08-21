@@ -25,8 +25,8 @@ class GameDatabase(Deserializable):
     game_history: List[GamePreview] = field(init=False, repr=False)
     """按时间顺序排列的游戏记录，缓存变量"""
 
-    external_id_set: Set[str] = field(init=False, repr=False)
-    """所有外部链接的集合，为防止重复添加"""
+    external_id_map: Dict[str, GameData] = field(init=False, repr=False)
+    """外部链接作为索引，为防止重复添加"""
 
     def __post_init__(self):
         self.update()
@@ -40,8 +40,8 @@ class GameDatabase(Deserializable):
                 key=lambda game: game.game_date or game.upload_time,
             )
         ]
-        self.external_id_set = {
-            game.external_id
+        self.external_id_map = {
+            game.external_id: game
             for game in self.all_game_data.values()
             if game.external_id is not None
         }

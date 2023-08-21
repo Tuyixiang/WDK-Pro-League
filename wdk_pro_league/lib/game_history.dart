@@ -32,18 +32,20 @@ class _GameHistoryPageState extends State<GameHistoryPage> {
         });
       });
     }
-    return buildPage(
-      context: context,
-      title: "游戏历史",
-      // 按钮来切换是否根据名次排序
-      actions: [
-        IconButton(
-          onPressed: toggleSortByOrder,
-          icon: Icon(sortByOrder
-              ? Icons.format_list_bulleted
-              : Icons.format_list_numbered),
-        )
-      ],
+    return Scaffold(
+      appBar: buildAppBar(
+        context: context,
+        title: "游戏历史",
+        actions: [
+          // 按钮来切换是否根据名次排序
+          IconButton(
+            onPressed: toggleSortByOrder,
+            icon: Icon(sortByOrder
+                ? Icons.format_list_bulleted
+                : Icons.format_list_numbered),
+          )
+        ],
+      ),
       // 为每个游戏记录生成卡片（倒序）
       body: ListView.builder(
         itemCount: data!.length,

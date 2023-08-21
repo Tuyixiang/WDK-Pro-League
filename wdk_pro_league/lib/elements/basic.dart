@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:material_dialogs/dialogs.dart';
+import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 import 'package:styled_widget/styled_widget.dart';
 
 const List<String> danNames = [
@@ -82,3 +84,21 @@ extension InvertedText on Text {
           .backgroundColor(color)
           .clipRRect(all: radius);
 }
+
+/// 绘制一个提示对话框
+Future<void> makePrompt(BuildContext context, String title, String msg) =>
+    Dialogs.materialDialog(
+      msg: msg,
+      title: title,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () => Navigator.of(context).pop(),
+          text: 'OK',
+          iconData: Icons.check_circle,
+          color: Colors.grey.withAlpha(96),
+          textStyle: TextStyle(color: Theme.of(context).canvasColor),
+          iconColor: Theme.of(context).canvasColor,
+        ),
+      ],
+    );

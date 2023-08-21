@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:wdk_pro_league/elements/game_preview.dart';
 
@@ -55,9 +55,8 @@ class _GameViewPageState extends State<GameViewPage> {
             },
           );
 
-    return buildPage(
-      context: context,
-      title: "游戏详情",
+    return Scaffold(
+      appBar: buildAppBar(context: context, title: "游戏详情"),
       body: body,
     );
   }

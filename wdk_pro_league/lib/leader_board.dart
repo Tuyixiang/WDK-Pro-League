@@ -1,15 +1,18 @@
+import 'dart:convert';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_widget/styled_widget.dart';
-import 'package:wdk_pro_league/elements/card.dart';
-import 'package:wdk_pro_league/elements/page.dart';
-import 'package:wdk_pro_league/game_history.dart';
-import 'package:wdk_pro_league/player_view.dart';
 
 import 'elements/basic.dart';
+import 'elements/card.dart';
 import 'elements/loading.dart';
+import 'elements/page.dart';
+import 'game_history.dart';
 import 'io/io.dart';
 import 'io/player_data.dart';
+import 'player_view.dart';
 
 /// Leader Board Page
 class LeaderBoardPage extends StatefulWidget {
@@ -42,21 +45,77 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
         });
       });
     }
-    return buildPage(
-      context: context,
-      title: "WDK Pro League 排行榜",
-      actions: [
-        IconButton(
-          onPressed: () {
-            Navigator.of(context).push(loadPage(const GameHistoryPage()));
-          },
-          icon: const Icon(Icons.history),
-        )
-      ],
+    return Scaffold(
+      appBar: buildAppBar(
+        context: context,
+        title: "WDK Pro League 排行榜",
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(loadPage(const GameHistoryPage()));
+            },
+            icon: const Icon(Icons.history),
+          ),
+        ],
+      ),
+      // body: 排行榜
       body: ListView.builder(
         itemCount: data.length,
         itemBuilder: (context, index) =>
             PlayerCard(index: index, info: data[index]),
+      ),
+      // 悬浮按钮：上传 json
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () async {
+          // 上传 JSON
+          final resultStrings =
+              await Provider.of<Loading>(context, listen: false).on(() async {
+            // 记录每个文件的上传结果
+            final resultStrings = <String, String>{};
+            // 建造上传给服务器的对象
+            final postObject = <String, String>{};
+            // 弹窗请用户选择文件
+            final picks =
+                await FilePicker.platform.pickFiles(allowMultiple: true);
+            // 处理无法打开和非 JSON 的文件，并将合法文件放入 postObject
+            picks?.files.forEach((file) {
+              try {
+                final content = utf8.decode(file.bytes!);
+                // 检验文件内容为合法 JSON
+                jsonDecode(content);
+                // 放入上传对象中
+                postObject[file.name] = content;
+              } on FormatException {
+                resultStrings[file.name] = "不是 JSON 文件";
+              } catch (e) {
+                print(e);
+                resultStrings[file.name] = "无法读取文件";
+              }
+            });
+            // 发送请求
+            if (postObject.isNotEmpty) {
+              final response = await IO.uploadGames(postObject);
+              resultStrings.addAll(response);
+            }
+            return resultStrings;
+          });
+          // 显示结果
+          if (!mounted) {
+            return;
+          }
+          await makePrompt(
+              context,
+              "上传结果",
+              resultStrings.entries
+                  .map<String>((e) => "${e.key}：${e.value}")
+                  .join("\n"));
+          // 刷新页面
+          setState(() {
+            initialized = false;
+            data = [];
+          });
+        },
       ),
     );
   }

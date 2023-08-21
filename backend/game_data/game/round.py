@@ -1,13 +1,15 @@
 """日本麻将的算点和积分规则"""
 
 from __future__ import annotations
+
+import sys
 from dataclasses import dataclass, field
 from enum import auto, IntEnum, StrEnum
 from typing import List, Optional, Tuple
 
 from .names import YAKU_NAMES
 from game_data.io import Deserializable
-from .tenhou import RoundFullInfo
+from .tenhou import RoundFullInfo, RoundSimulationFailure
 
 NAGASHI_MANGAN_AS_DRAW = True
 """根据天凤/雀魂规则，荒牌流局视为流局（亲家听牌则连庄）"""
@@ -242,7 +244,18 @@ class TenhouRound(BaseRound):
         else:
             print(f"未实现的结局：{state}")
 
-        full_info = RoundFullInfo.from_json(obj)
+        try:
+            full_info = RoundFullInfo.from_json(obj)
+            final_hands = [
+                (*player.status, full_info.agari)
+                for player in full_info.player_final_status
+            ]
+            riichi_status = full_info.riichi_status
+        except (AssertionError, RoundSimulationFailure) as e:
+            print(f"未能加载牌局 {e}", file=sys.stderr)
+            final_hands = None
+            riichi_status = None
+            full_info = None
         return TenhouRound(
             ending=ending,
             prevailing_wind=wind,
@@ -251,11 +264,8 @@ class TenhouRound(BaseRound):
             kyoutaku=kyoutaku,
             initial_points=initial_points,
             result_points=result_points,
-            final_hands=[
-                (*player.status, full_info.agari)
-                for player in full_info.player_final_status
-            ],
-            riichi_status=full_info.riichi_status,
+            final_hands=final_hands,
+            riichi_status=riichi_status,
             wins=wins,
             full_info=full_info,
         )

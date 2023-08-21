@@ -69,7 +69,7 @@ class GameDataController(Deserializable):
         使用 https://github.com/zyr17/MajsoulPaipuAnalyzer 生成的牌谱"""
         # 检查是否已经存在相同的游戏
         external_game_id = paipu_parse_id(game_obj)
-        if external_game_id in self.game_database.external_id_set:
+        if external_game_id in self.game_database.external_id_map:
             return
 
         # 读取玩家列表，如果不存在则创建新雀魂玩家
@@ -100,12 +100,12 @@ class GameDataController(Deserializable):
         # 保存游戏
         self.apply_game(game)
 
-    def load_from_tenhou_json(self, game_obj: dict):
+    def load_from_tenhou_json(self, game_obj: dict) -> GameData:
         """从 JSON 对象（天凤格式）中读取并保存游戏"""
         # 检查是否已经存在相同的游戏
         external_game_id = game_obj["ref"]
-        if external_game_id in self.game_database.external_id_set:
-            return
+        if external_game_id in self.game_database.external_id_map:
+            return self.game_database.external_id_map[external_game_id]
 
         # 读取玩家列表，如果不存在则创建新雀魂玩家
         players = []
@@ -127,19 +127,20 @@ class GameDataController(Deserializable):
             players=[p.snapshot for p in players],
             player_points=game_obj["sc"][::2],
             rounds=[TenhouRound.from_json(r) for r in game_obj["log"]],
-            game_date=tenhou_parse_timestamp(data),
+            game_date=tenhou_parse_timestamp(game_obj),
             external_id=external_game_id,
             game_type=MAJSOUL_GAME,
         )
 
         # 保存游戏
         self.apply_game(game)
+        return game
 
     def load_from_offline_json(self, game_obj: dict):
         """从 JSON 对象读取并保存线下游戏"""
         # 检查是否已经存在相同的游戏
         external_game_id = offline_parse_id(game_obj)
-        if external_game_id in self.game_database.external_id_set:
+        if external_game_id in self.game_database.external_id_map:
             return
 
         # 读取玩家列表，如果不存在则创建新雀魂玩家
@@ -192,7 +193,7 @@ def load_from_directory(
                 # 去重
                 if (
                     external_id in new_game_ids
-                    or external_id in game_database.external_id_set
+                    or external_id in game_database.external_id_map
                 ):
                     continue
                 new_game_ids.add(external_id)

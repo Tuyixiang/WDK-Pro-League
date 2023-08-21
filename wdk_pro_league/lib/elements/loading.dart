@@ -5,15 +5,15 @@ import 'package:provider/provider.dart';
 /// 加载界面及逻辑
 
 class Loading with ChangeNotifier {
-  bool value = false;
+  int value = 0;
 
   void start() {
-    value = true;
+    value += 1;
     notifyListeners();
   }
 
   void end() {
-    value = false;
+    value -= 1;
     notifyListeners();
   }
 
@@ -33,7 +33,7 @@ class LoadingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (Provider.of<Loading>(context).value) {
+    if (Provider.of<Loading>(context).value > 0) {
       return const Scaffold(
         backgroundColor: Colors.transparent,
         body: Center(

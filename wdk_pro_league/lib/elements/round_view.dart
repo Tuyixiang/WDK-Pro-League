@@ -378,7 +378,7 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
     final (hand, melds, agari) = widget.winningHand!;
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 4,
+      spacing: 8,
       children: ([hand] +
               melds +
               [

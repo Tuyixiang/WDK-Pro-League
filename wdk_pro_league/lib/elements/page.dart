@@ -1,24 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:styled_widget/styled_widget.dart';
 
-/// 创建一个标准的页面
-Widget buildPage({
+/// 创建一个标准的页面标题
+AppBar buildAppBar({
   required BuildContext context,
   // 页面标题
   required String title,
-// 页面标题旁的动作按钮
+  // 页面标题旁的动作按钮
   List<Widget>? actions,
-// 页面内容
-  required Widget body,
 }) =>
-    Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold))
-            .center(),
-        actions: actions,
-      ),
-      body: body,
+    AppBar(
+      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold))
+          .center(),
+      actions: actions,
     );
 
 /// 打开一个页面（带有弹出动画）
