@@ -68,6 +68,12 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () async {
+          // 弹窗请用户选择文件
+          final picks =
+              await FilePicker.platform.pickFiles(allowMultiple: true);
+          if (!mounted || picks == null) {
+            return;
+          }
           // 上传 JSON
           final resultStrings =
               await Provider.of<Loading>(context, listen: false).on(() async {
@@ -75,11 +81,8 @@ class _LeaderBoardPageState extends State<LeaderBoardPage> {
             final resultStrings = <String, String>{};
             // 建造上传给服务器的对象
             final postObject = <String, String>{};
-            // 弹窗请用户选择文件
-            final picks =
-                await FilePicker.platform.pickFiles(allowMultiple: true);
             // 处理无法打开和非 JSON 的文件，并将合法文件放入 postObject
-            picks?.files.forEach((file) {
+            picks.files.forEach((file) {
               try {
                 final content = utf8.decode(file.bytes!);
                 // 检验文件内容为合法 JSON
