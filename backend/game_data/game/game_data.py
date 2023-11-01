@@ -54,8 +54,14 @@ class GameType(Deserializable):
             GameType.Enum[self.name] = self
 
 
-MAJSOUL_GAME = GameType(name="雀魂牌局")
-OFFLINE_GAME = GameType(name="线下牌局", pt_multiplier=4 / 3)
+MAJSOUL_GAME_SOUTH4 = GameType(name="雀魂牌局-四人南")
+MAJSOUL_GAME_EAST4 = GameType(name="雀魂牌局-四人东", pt_multiplier=2 / 3)
+MAJSOUL_GAME_DEFAULT = MAJSOUL_GAME_SOUTH4
+
+OFFLINE_GAME_SOUTH4 = GameType(name="线下牌局-四人南", pt_multiplier=4 / 3)
+OFFLINE_GAME_EAST4 = GameType(name="线下牌局-四人东", pt_multiplier=8 / 9)
+OFFLINE_GAME_DEFAULT = OFFLINE_GAME_SOUTH4
+
 MAJSOUL_LEAGUE_GAME = GameType(name="雀魂联赛牌局", uma=[10000, 20000, 30000, 40000])
 OFFLINE_LEAGUE_GAME = GameType(
     name="线下联赛牌局", pt_multiplier=4 / 3, uma=[10000, 20000, 30000, 40000]

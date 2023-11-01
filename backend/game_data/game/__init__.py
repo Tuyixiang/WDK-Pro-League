@@ -16,8 +16,12 @@ __all__ = [
     "TenhouRound",
     # Game
     "GameType",
-    "MAJSOUL_GAME",
+    "MAJSOUL_GAME_SOUTH4",
+    "MAJSOUL_GAME_EAST4",
+    "MAJSOUL_GAME_DEFAULT",
     "MAJSOUL_LEAGUE_GAME",
-    "OFFLINE_GAME",
+    "OFFLINE_GAME_SOUTH4",
+    "OFFLINE_GAME_EAST4",
+    "OFFLINE_GAME_DEFAULT",
     "OFFLINE_LEAGUE_GAME",
 ]

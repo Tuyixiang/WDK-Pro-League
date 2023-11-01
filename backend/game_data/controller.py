@@ -89,6 +89,16 @@ class GameDataController(Deserializable):
                     )
                 )
 
+        # 读取轮数
+        round_count = game_obj["gamedata"]["roomdata"]["round"]
+        match round_count:
+            case 8:
+                game_type = MAJSOUL_GAME_SOUTH4
+            case 4:
+                game_type = MAJSOUL_GAME_EAST4
+            case _:
+                raise ValueError(f"雀魂牌谱轮数无法解析：{round_count}")
+
         # 创建游戏
         game = GameData(
             players=[p.snapshot for p in players],
@@ -97,7 +107,7 @@ class GameDataController(Deserializable):
             ],
             game_date=paipu_parse_timestamp(game_obj),
             external_id=external_game_id,
-            game_type=MAJSOUL_GAME,
+            game_type=game_type,
         )
 
         # 保存游戏
@@ -125,6 +135,16 @@ class GameDataController(Deserializable):
                     )
                 )
 
+        # 读取轮数
+        game_type_str = game_obj["rule"]["disp"]
+        match game_type_str:
+            case "Friendly South" | "友人戦南喰赤":
+                game_type = MAJSOUL_GAME_SOUTH4
+            case "Friendly East" | "友人戦東喰赤":
+                game_type = MAJSOUL_GAME_EAST4
+            case _:
+                raise ValueError(f"天凤牌谱游戏类型无法解析：{game_type_str}")
+
         # 创建游戏
         game = GameData(
             players=[p.snapshot for p in players],
@@ -132,7 +152,7 @@ class GameDataController(Deserializable):
             rounds=[TenhouRound.from_json(r) for r in game_obj["log"]],
             game_date=tenhou_parse_timestamp(game_obj),
             external_id=external_game_id,
-            game_type=MAJSOUL_GAME,
+            game_type=game_type,
         )
 
         # 保存游戏
@@ -165,7 +185,7 @@ class GameDataController(Deserializable):
             player_points=game_obj["player_points"],
             game_date=offline_parse_timestamp(game_obj),
             external_id=external_game_id,
-            game_type=GameType.Enum.get(game_obj["game_type"], OFFLINE_GAME),
+            game_type=GameType.Enum.get(game_obj["game_type"], OFFLINE_GAME_DEFAULT),
         )
 
         # 保存游戏
