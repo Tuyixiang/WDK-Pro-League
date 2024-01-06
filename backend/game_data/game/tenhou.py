@@ -198,7 +198,10 @@ class RoundFullInfo(Deserializable):
         players = [
             TenhouRoundPlayerStatus(dealer, i, initial_hands[i]) for i in range(4)
         ]
+        # 立直状态
         riichi_status = [False] * 4
+        # 记录最后打出的一张牌是哪位玩家的立直牌（若非立直则为 -1）
+        last_discard_riichi_player = -1
 
         # 开始模拟牌局
         # 摸的牌
@@ -222,6 +225,7 @@ class RoundFullInfo(Deserializable):
 
         while indices[current] < len(draws[current]):
             draw = draws[current][indices[current]]
+            last_discard_riichi_player = -1
             if indices[current] == len(discards[current]):
                 # 自摸
                 agari = parse_tenhou_tile(draw)
@@ -248,6 +252,7 @@ class RoundFullInfo(Deserializable):
                 assert discard[0] == "r"
                 discard = int(discard[1:])
                 riichi_status[current] = True
+                last_discard_riichi_player = current
             # 吃碰杠
             if isinstance(draw, str):
                 meld, draw_tile, distance = parse_tenhou_meld(draw)
@@ -289,6 +294,10 @@ class RoundFullInfo(Deserializable):
                     break
             else:
                 current = (current + 1) % 4
+
+        # 如果立直铳牌，则取消最后一人的立直状态
+        if last_discard_riichi_player != -1:
+            riichi_status[last_discard_riichi_player] = False
 
         return RoundFullInfo(
             wind=wind,
