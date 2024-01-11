@@ -115,8 +115,8 @@ class RoundWin(Deserializable):
     yakuman: int = field(default=0)
     """役满倍数（包括累计役满）"""
 
-    yaku: List[Tuple[str, int | str]] = field(default_factory=list)
-    """役种（名称及番数，如果为役满则为役满文字）"""
+    yaku: List[Tuple[str, int, int]] = field(default_factory=list)
+    """役种（名称，番数，役满倍数）"""
 
     hand: Optional[Tuple[List[str], List[List[str]], str]] = field(default=None)
     """赢家的牌（暗牌、明牌、和牌）"""
@@ -226,11 +226,14 @@ class TenhouRound(BaseRound):
                         if yaku_han != 0:
                             han += yaku_han
                             yaku.append(
-                                (YAKU_NAMES.get(yaku_name, yaku_name), yaku_han)
+                                (YAKU_NAMES.get(yaku_name, yaku_name), yaku_han, 0)
                             )
                     elif "役満" in yaku_size:
-                        yakuman += 1
-                        yaku.append((YAKU_NAMES.get(yaku_name, yaku_name), yaku_size))
+                        yakuman_size = 2 if "倍" in yaku_size else 1
+                        yakuman += yakuman_size
+                        yaku.append(
+                            (YAKU_NAMES.get(yaku_name, yaku_name), 0, yakuman_size)
+                        )
                 if "符" in win_description:
                     fu = int(win_description.split("符")[0])
                 else:

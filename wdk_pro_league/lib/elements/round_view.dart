@@ -248,12 +248,9 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
     if (yakuman >= 2) {
       return Text("${numberNames[yakuman - 1]}倍役满", style: style)
           .bold()
-          .invertWithColor(theme.primaryColorLight,
-              foreground: theme.primaryColor);
+          .textColor(theme.colorScheme.error);
     } else if (yakuman > 0) {
-      return Text("役满", style: style).bold().invertWithColor(
-          theme.primaryColorLight,
-          foreground: theme.primaryColor);
+      return Text("役满", style: style).bold().textColor(theme.colorScheme.error);
     } else if (han >= 12) {
       return Text("三倍满", style: style).bold().textColor(theme.primaryColor);
     } else if (han >= 8) {
@@ -279,8 +276,7 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
       return Text(
         "${yakuman * (isDealer ? 48000 : 32000)}",
         style: style,
-      ).bold().invertWithColor(theme.primaryColorLight,
-          foreground: theme.primaryColor);
+      ).bold().textColor(theme.colorScheme.error);
     } else if (han >= 12) {
       return Text("${isDealer ? 36000 : 24000}", style: style)
           .bold()
@@ -390,20 +386,34 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
   }
 
   /// 绘制役种
-  Widget _buildYaku(BuildContext context, String name, int han) {
-    final style = Theme.of(context).textTheme.bodySmall;
+  Widget _buildYaku(BuildContext context, String name, int han, int yakuman) {
+    final TextStyle textStyle;
+    final Color backColor;
+    final String yakuSize;
+    if (yakuman == 0) {
+      textStyle = Theme.of(context).textTheme.bodySmall!;
+      backColor = Colors.grey.shade300;
+      yakuSize = han.toString();
+    } else {
+      textStyle = Theme.of(context)
+          .textTheme
+          .bodySmall!
+          .copyWith(fontWeight: FontWeight.bold);
+      backColor = Colors.grey.shade300;
+      yakuSize = yakuman == 1 ? "役满" : "两倍役满";
+    }
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(name, style: style),
+        Text(name, style: textStyle),
         const SizedBox(width: 1, height: 20)
             .backgroundColor(Colors.white)
             .padding(horizontal: 4),
-        Text(han.toString(), style: style).bold(),
+        Text(yakuSize, style: textStyle).bold(),
       ],
     )
         .padding(horizontal: 4)
-        .backgroundColor(Colors.grey.shade300)
+        .backgroundColor(backColor)
         .clipRRect(all: 25)
         .padding(bottom: 8);
   }
@@ -423,7 +433,7 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
         Wrap(
           spacing: 16,
           children: widget.win!.yaku
-              .map((item) => _buildYaku(context, item.$1, item.$2))
+              .map((item) => _buildYaku(context, item.$1, item.$2, item.$3))
               .toList(),
         ),
         const Divider(height: 0),

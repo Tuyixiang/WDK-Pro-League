@@ -85,8 +85,8 @@ class Win {
   /// 役满倍数
   final int yakuman;
 
-  /// 役种及其番数
-  final List<(String, int)> yaku;
+  /// 役种，番数，役满倍数
+  final List<(String, int, int)> yaku;
 
   Win({
     required this.winner,
@@ -105,7 +105,8 @@ class Win {
         fu: obj["fu"],
         yakuman: obj["yakuman"],
         yaku: obj["yaku"]
-            .map<(String, int)>((e) => (cast<String>(e[0])!, cast<int>(e[1])!))
+            .map<(String, int, int)>((e) =>
+                (cast<String>(e[0])!, cast<int>(e[1])!, cast<int>(e[2])!))
             .toList(),
       );
 }
