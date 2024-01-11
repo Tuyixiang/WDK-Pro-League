@@ -244,56 +244,51 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
     final fu = widget.win!.fu;
     final yakuman = widget.win!.yakuman;
     final theme = Theme.of(context);
-    final style = theme.textTheme.titleMedium;
-    if (yakuman >= 2) {
-      return Text("${numberNames[yakuman - 1]}倍役满", style: style)
-          .bold()
-          .textColor(theme.colorScheme.error);
-    } else if (yakuman > 0) {
-      return Text("役满", style: style).bold().textColor(theme.colorScheme.error);
-    } else if (han >= 12) {
-      return Text("三倍满", style: style).bold().textColor(theme.primaryColor);
-    } else if (han >= 8) {
-      return Text("倍满", style: style).bold().textColor(theme.primaryColor);
-    } else if (han >= 6) {
-      return Text("跳满", style: style).bold().textColor(theme.primaryColor);
-    } else if ((han >= 4 && fu >= 40) || (han >= 3 && fu >= 70)) {
-      return Text("满贯", style: style).bold();
-    } else {
-      return Text("$han番$fu符", style: style);
-    }
-  }
-
-  /// 绘制和牌得点
-  Widget _buildWinPoints(BuildContext context) {
-    final han = widget.win!.han;
-    final fu = widget.win!.fu;
-    final yakuman = widget.win!.yakuman;
-    final theme = Theme.of(context);
-    final style = theme.textTheme.titleMedium;
     final isDealer = widget.dealer == widget.win!.winner;
+    TextStyle style = theme.textTheme.titleMedium!;
+
+    // 番符/满贯/役满的描述
+    final String size;
+    // 点数
+    final int point;
+
+    // 役满：反色
     if (yakuman > 0) {
-      return Text(
-        "${yakuman * (isDealer ? 48000 : 32000)}",
-        style: style,
-      ).bold().textColor(theme.colorScheme.error);
-    } else if (han >= 12) {
-      return Text("${isDealer ? 36000 : 24000}", style: style)
+      if (yakuman >= 2) {
+        size = "${numberNames[yakuman - 1]}倍役满";
+        point = yakuman * (isDealer ? 48000 : 32000);
+      } else {
+        size = "役满";
+        point = isDealer ? 48000 : 32000;
+      }
+      return Text("$size $point", style: style)
           .bold()
-          .textColor(theme.primaryColor);
+          .invertWithColor(theme.primaryColor);
+    }
+
+    // 非役满
+    if (han >= 12) {
+      size = "三倍满";
+      point = isDealer ? 36000 : 24000;
+      style = style.copyWith(
+          fontWeight: FontWeight.bold, color: theme.primaryColor);
     } else if (han >= 8) {
-      return Text("${isDealer ? 24000 : 16000}", style: style)
-          .bold()
-          .textColor(theme.primaryColor);
+      size = "倍满";
+      point = isDealer ? 24000 : 16000;
+      style = style.copyWith(
+          fontWeight: FontWeight.bold, color: theme.primaryColor);
     } else if (han >= 6) {
-      return Text("${isDealer ? 18000 : 12000}", style: style)
-          .bold()
-          .textColor(theme.primaryColor);
+      size = "跳满";
+      point = isDealer ? 18000 : 12000;
+      style = style.copyWith(
+          fontWeight: FontWeight.bold, color: theme.primaryColor);
     } else if ((han >= 4 && fu >= 40) || (han >= 3 && fu >= 70)) {
-      return Text("${isDealer ? 12000 : 8000}", style: style).bold();
+      size = "满贯";
+      point = isDealer ? 12000 : 8000;
+      style = style.copyWith(fontWeight: FontWeight.bold);
     } else {
+      size = "$han番$fu符";
       final base = fu * (4 << han);
-      final int point;
       if (widget.ending == "自摸") {
         if (isDealer) {
           point = 300 * ((base * 2 + 99) ~/ 100);
@@ -307,8 +302,8 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
           point = 100 * ((base * 4 + 99) ~/ 100);
         }
       }
-      return Text("$point", style: style);
     }
+    return Text("$size $point", style: style);
   }
 
   /// 绘制结束标题
@@ -337,8 +332,6 @@ class _RoundResultCardState extends CardState<RoundResultCard> {
               _buildEnding(context),
               const SizedBox(width: 8),
               _buildWinDetail(context),
-              const SizedBox(width: 8),
-              _buildWinPoints(context),
             ],
           ),
           Row(
