@@ -115,8 +115,8 @@ class RoundWin(Deserializable):
     yakuman: int = field(default=0)
     """役满倍数（包括累计役满）"""
 
-    yaku: List[Tuple[str, int]] = field(default_factory=list)
-    """役种（名称及番数）"""
+    yaku: List[Tuple[str, int | str]] = field(default_factory=list)
+    """役种（名称及番数，如果为役满则为役满文字）"""
 
     hand: Optional[Tuple[List[str], List[List[str]], str]] = field(default=None)
     """赢家的牌（暗牌、明牌、和牌）"""
@@ -216,14 +216,21 @@ class TenhouRound(BaseRound):
                 if winner == loser:
                     ending = RoundEnding.Tsumo
                 yaku = []
+                yakuman = 0
+                han = 0
                 for s in yaku_list:
-                    yaku_name, rest = s.split("(")
-                    yaku_han = rest.split("飜")[0]
-                    if yaku_han != "0":
-                        yaku.append(
-                            (YAKU_NAMES.get(yaku_name, yaku_name), int(yaku_han))
-                        )
-                han = sum(y[1] for y in yaku)
+                    # s 样例："Pinfu(1飜)", "Ura Dora(0飜)", "Four Concealed Triplets(役満)"
+                    yaku_name, yaku_size = s.split(")")[0].split("(")
+                    if "飜" in yaku_size:
+                        yaku_han = int(yaku_size.split("飜")[0])
+                        if yaku_han != 0:
+                            han += yaku_han
+                            yaku.append(
+                                (YAKU_NAMES.get(yaku_name, yaku_name), yaku_han)
+                            )
+                    elif "役満" in yaku_size:
+                        yakuman += 1
+                        yaku.append((YAKU_NAMES.get(yaku_name, yaku_name), yaku_size))
                 if "符" in win_description:
                     fu = int(win_description.split("符")[0])
                 else:
@@ -235,6 +242,7 @@ class TenhouRound(BaseRound):
                         han=han,
                         fu=fu,
                         yaku=yaku,
+                        yakuman=yakuman,
                     )
                 )
         elif ending == RoundEnding.ExhaustiveDraw:
