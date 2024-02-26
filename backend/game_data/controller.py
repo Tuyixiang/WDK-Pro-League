@@ -186,6 +186,7 @@ class GameDataController(Deserializable):
             game_date=offline_parse_timestamp(game_obj),
             external_id=external_game_id,
             game_type=GameType.Enum.get(game_obj["game_type"], OFFLINE_GAME_DEFAULT),
+            yakuman_count=game_obj.get("yakuman_count"),
         )
 
         # 保存游戏

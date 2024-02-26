@@ -96,6 +96,9 @@ class GameData(Deserializable):
     upload_time: datetime = field(default_factory=datetime.now)
     """上传时间（以服务器接受为准）"""
 
+    yakuman_count: Optional[List[int]] = field(default=None)
+    """每个玩家的役满次数，手动输入时使用。如果存在 rounds 则不适用"""
+
     pt_delta: List[int] = field(init=False, repr=False)
     """玩家获得的分数，缓存变量"""
 
@@ -156,10 +159,13 @@ class GameData(Deserializable):
 
             # 低于 5 段玩家每和出一倍役满 +90pt
             if player.current_dan < 5:
-                for round_ in self.rounds:
-                    for win in round_.wins:
-                        if win.winner == seat and win.yakuman > 0:
-                            pt += 90 * win.yakuman
+                if self.yakuman_count is not None:
+                    pt += 90 * self.yakuman_count[seat]
+                else:
+                    for round_ in self.rounds:
+                        for win in round_.wins:
+                            if win.winner == seat and win.yakuman > 0:
+                                pt += 90 * win.yakuman
 
             # 低于 5 段玩家，顺位每比段位高 >=2 的玩家高一位，+15pt
             if player.current_dan < 5:
