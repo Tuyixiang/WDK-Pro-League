@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:wdk_pro_league/io/helper.dart';
 
 typedef WinningHand = (List<String>, List<List<String>>, String);
@@ -32,6 +33,11 @@ class RoundData {
   final List<Win> wins;
 
   final List<WinningHand>? finalHands;
+
+  List<int> get finalPoints => initialPoints
+      .mapIndexed((index, point) =>
+          point + resultPoints.map((result) => result[index]).sum)
+      .toList();
 
   RoundData({
     required this.wind,

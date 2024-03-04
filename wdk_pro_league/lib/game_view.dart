@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:wdk_pro_league/elements/game_plot.dart';
 import 'package:wdk_pro_league/elements/game_preview.dart';
 
 import 'elements/loading.dart';
@@ -42,18 +43,27 @@ class _GameViewPageState extends State<GameViewPage> {
       });
     }
 
-    final body = data == null
-        ? const SizedBox.shrink()
-        : ListView.builder(
-            itemCount: data!.rounds.length + 1,
-            itemBuilder: (context, index) {
-              if (index == data!.rounds.length) {
-                return GamePreviewCard(data: data!.preview);
-              }
-              return RoundResultView(
-                  gameData: data!, roundData: data!.rounds[index]);
-            },
-          );
+    final Widget body;
+
+    if (data == null) {
+      body = const SizedBox.shrink();
+    } else if (data!.rounds.isEmpty) {
+      body = GamePreviewCard(data: data!.preview);
+    } else {
+      body = ListView.builder(
+        itemCount: data!.rounds.length + 2,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return GamePreviewCard(data: data!.preview);
+          }
+          if (index == 1) {
+            return GamePlot(data: data!);
+          }
+          return RoundResultView(
+              gameData: data!, roundData: data!.rounds[index - 2]);
+        },
+      );
+    }
 
     return Scaffold(
       appBar: buildAppBar(context: context, title: "游戏详情"),

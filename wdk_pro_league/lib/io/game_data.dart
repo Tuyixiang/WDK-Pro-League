@@ -55,6 +55,17 @@ class GameData {
     required this.gameType,
   });
 
+  /// 按照名次排序的玩家座次顺序
+  List<int> get orderedPlayerSeats => playerPoints
+      .mapIndexed((i, p) => (i, p))
+      .sorted((a, b) => a.$2 == b.$2 ? b.$1 - a.$1 : b.$2 - a.$2)
+      .map((tup) => tup.$1)
+      .toList();
+
+  /// playerOrder[seat] 代表该玩家名次（0-3）
+  List<int> get playerOrder =>
+      List.generate(4, (seat) => orderedPlayerSeats.indexOf(seat));
+
   static GameData fromJson(Map<String, dynamic> data) => GameData(
         players: List<PlayerPreview>.from(
           data["players"].map((v) => PlayerPreview(v)),
@@ -75,10 +86,8 @@ class GameData {
   GamePreview get preview => GamePreview(
         players: players,
         playerPoints: playerPoints,
-        orderedPlayerIds: playerPoints
-            .mapIndexed((i, p) => (i, p))
-            .sorted((a, b) => a.$2 == b.$2 ? b.$1 - a.$1 : b.$2 - a.$2)
-            .map<String>((p) => players[p.$1].playerId)
+        orderedPlayerIds: orderedPlayerSeats
+            .map<String>((seat) => players[seat].playerId)
             .toList(),
         date: gameDate ?? uploadTime,
         gameId: gameId,
